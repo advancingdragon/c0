@@ -1,0 +1,44 @@
+<!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
+<idea-plugin>
+    <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
+    <id>edu.cmu.c0</id>
+
+    <!-- Public plugin name should be written in Title Case.
+         Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-name -->
+    <name>C0 Gradual Verifier</name>
+
+    <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
+    <vendor email="longtien@andrew.cmu.edu" url="https://nguyen.bz">Long Tien Nguyen</vendor>
+
+    <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
+         Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
+         Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
+    <description><![CDATA[
+    C0 programming language, a subset of C used at CMU.
+  ]]></description>
+
+    <!-- Product and plugin compatibility requirements.
+         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
+    <depends>com.intellij.modules.platform</depends>
+
+    <!-- Extension points defined by the plugin.
+         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
+    <extensions defaultExtensionNs="com.intellij">
+        <fileType
+            name="C0 File"
+            implementationClass="edu.cmu.c0.C0FileType"
+            fieldName="INSTANCE"
+            language="C0"
+            extensions="c0" />
+        <backspaceHandlerDelegate implementation="edu.cmu.c0.ResetOnBackspace" />
+        <enterHandlerDelegate implementation="edu.cmu.c0.ResetOnEnter" />
+        <typedHandler implementation="edu.cmu.c0.ResetTyped" />
+    </extensions>
+    <actions>
+        <action id="edu.cmu.c0.MyAction" class="edu.cmu.c0.MyAction" text="Symbolic Execution"
+                description="Run symbolic execution verifier">
+            <add-to-group group-id="ToolsMenu" anchor="first"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="shift alt S"/>
+        </action>
+    </actions>
+</idea-plugin>
