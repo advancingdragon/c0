@@ -1,17 +1,22 @@
 package edu.cmu.c0;
 
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.markup.EffectType;
+import com.intellij.openapi.editor.markup.HighlighterTargetArea;
+import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.ui.JBColor;
 import scala.collection.JavaConverters;
 import scala.collection.Seq;
 import viper.silicon.logger.SymbExLogger;
 import viper.silicon.logger.records.SymbolicRecord;
-import viper.silicon.logger.records.data.CommentRecord;
-import viper.silicon.logger.records.data.ExecuteRecord;
+import viper.silicon.logger.records.data.*;
 import viper.silicon.logger.records.structural.BranchingRecord;
 import viper.silver.ast.TranslatedPosition;
+import viper.silver.ast.Not;
 
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 
 public class Method {
     // each path is uniquely identified by the set of branches that were taken
@@ -51,8 +56,11 @@ public class Method {
                     forks1.put(b, false);
                     traverse(b.getBranches().apply(1), ended, forks1, new HashSet<>(statements));
                 }
-                case CommentRecord c &&
-                        (c.comment().equals("End") || c.comment().equals("Failure")) ->
+                case CommentRecord c && c.comment().equals("Failure") ->
+                    ended = true;
+                case EndRecord ignored ->
+                    ended = true;
+                case LoopOutRecord ignored ->
                     ended = true;
                 case ExecuteRecord x &&
                         x.value().pos() instanceof TranslatedPosition ->
@@ -78,13 +86,50 @@ public class Method {
                         renderInlays(b.getBranches().apply(1), editor);
                     }
                 }
+                case ConditionalEdgeRecord c &&
+                        c.value().pos() instanceof TranslatedPosition pos -> {
+                    final var markupModel = editor.getMarkupModel();
+                    final var offset0 = document.getLineStartOffset(U.toIJ(pos.line()));
+                    final var end = pos.end().get();
+                    final var offset1 = document.getLineStartOffset(U.toIJ(end.line()));
+                    var color = JBColor.GREEN;
+                    if (c.value() instanceof Not not && not.pos().equals(c.value().pos())) {
+                        color = JBColor.LIGHT_GRAY;
+                    }
+                    final var attr = new TextAttributes(JBColor.BLACK, color, color, EffectType.BOXED, Font.BOLD);
+                    markupModel.addRangeHighlighter(offset0 + U.toIJ(pos.column()),
+                            offset1 + U.toIJ(end.column()),
+                            U.LAYER_CONDITIONAL, attr, HighlighterTargetArea.EXACT_RANGE);
+                }
+                case EndRecord e &&
+                        e.value().pos() instanceof TranslatedPosition pos -> {
+                    final var offset = document.getLineStartOffset(U.toIJ(pos.end().get().line()));
+                    final var h = SymbExLogger.formatChunks(e.state().h().values()) + SymbExLogger.formatPathConditions(e.pcs());
+                    final var opt = SymbExLogger.formatChunks(e.state().optimisticHeap().values());
+                    final var renderer = new InlayRenderer(new JBColor(0xFF7000, 0xFF7000), h, opt);
+                    inlayModel.addBlockElement(offset, false, false, 1, renderer);
+                }
                 case ExecuteRecord x &&
                         x.value().pos() instanceof TranslatedPosition pos -> {
                     final var offset = document.getLineStartOffset(U.toIJ(pos.line()));
-                    final var h = SymbExLogger.formatChunks(x.state().h().values());
+                    final var h = SymbExLogger.formatChunks(x.state().h().values()) + SymbExLogger.formatPathConditions(x.pcs());
                     final var opt = SymbExLogger.formatChunks(x.state().optimisticHeap().values());
                     final var renderer = new InlayRenderer(new JBColor(0xFF7000, 0xFF7000), h, opt);
                     inlayModel.addBlockElement(offset, false, true, 1, renderer);
+                }
+                case LoopInRecord i && i.pos() instanceof TranslatedPosition pos -> {
+                    final var offset = document.getLineStartOffset(U.toIJ(pos.line()));
+                    final var h = SymbExLogger.formatChunks(i.state().h().values()) + SymbExLogger.formatPathConditions(i.pcs());
+                    final var opt = SymbExLogger.formatChunks(i.state().optimisticHeap().values());
+                    final var renderer = new InlayRenderer(new JBColor(0x0070FF, 0x0070FF), h, opt);
+                    inlayModel.addBlockElement(offset, false, true, 1, renderer);
+                }
+                case LoopOutRecord o && o.pos() instanceof TranslatedPosition pos -> {
+                    final var offset = document.getLineStartOffset(U.toIJ(pos.line()));
+                    final var h = SymbExLogger.formatChunks(o.state().h().values()) + SymbExLogger.formatPathConditions(o.pcs());
+                    final var opt = SymbExLogger.formatChunks(o.state().optimisticHeap().values());
+                    final var renderer = new InlayRenderer(new JBColor(0x609000, 0x609000), h, opt);
+                    inlayModel.addBlockElement(offset, false, false, 1, renderer);
                 }
                 default -> { }
             }

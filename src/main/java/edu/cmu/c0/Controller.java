@@ -35,8 +35,7 @@ public class Controller implements EditorMouseListener {
         final var h = scrollingModel.getHorizontalScrollOffset();
         final var v = scrollingModel.getVerticalScrollOffset();
 
-        // dispose of all block inlays displaying heap state
-        U.removeBlockInlays(editor);
+        U.cleanUpAfterClick(editor);
 
         // find method line belongs to, toggle path number, and redraw inlays
         final var lineClicked = event.getLogicalPosition().line;

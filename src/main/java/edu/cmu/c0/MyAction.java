@@ -68,7 +68,7 @@ public class MyAction extends AnAction {
                 final var attr = new TextAttributes(JBColor.BLACK, JBColor.RED, JBColor.RED, EffectType.BOXED, Font.BOLD);
                 markupModel.addRangeHighlighter(offset0 + U.toIJ(pos.column()),
                         offset1 + U.toIJ(end.column()),
-                        31337, attr, HighlighterTargetArea.EXACT_RANGE);
+                        U.LAYER_ERROR, attr, HighlighterTargetArea.EXACT_RANGE);
                 inlayModel.addAfterLineEndElement(offset0, false,
                         new InlayRenderer(JBColor.RED, error.readableMessage()));
             }
