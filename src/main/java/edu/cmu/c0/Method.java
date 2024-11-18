@@ -46,6 +46,7 @@ public class Method {
                          boolean ended,
                          Map<BranchingRecord, Boolean> forks,
                          Set<ExecuteRecord> statements) {
+        forLoop:
         for (final var record : JavaConverters.asJavaIterable(records)) {
             switch (record) {
                 case BranchingRecord b -> {
@@ -56,12 +57,18 @@ public class Method {
                     forks1.put(b, false);
                     traverse(b.getBranches().apply(1), ended, forks1, new HashSet<>(statements));
                 }
-                case CommentRecord c && c.comment().equals("Failure") ->
+                case CommentRecord c && c.comment().equals("Failure") -> {
                     ended = true;
-                case EndRecord ignored ->
+                    break forLoop;
+                }
+                case EndRecord ignored -> {
                     ended = true;
-                case LoopOutRecord ignored ->
+                    break forLoop;
+                }
+                case LoopOutRecord ignored -> {
                     ended = true;
+                    break forLoop;
+                }
                 case ExecuteRecord x &&
                         x.value().pos() instanceof TranslatedPosition ->
                     statements.add(x);
