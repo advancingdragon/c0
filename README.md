@@ -11,13 +11,13 @@ Tools > Symbolic Execution
 Installation
 ------------
 
-1. Tested with the following versions, other versions may work.
+1. Install the following
 
-- Eclipse Adoptium Java 17
+- Eclipse Adoptium JDK 17
 
 - Scala >= 2.12.18 (Coursier is recommended to install Scala)
 
-- IntelliJ IDEA Community Edition 2022.3.3
+- IntelliJ IDEA Ultimate or Community Edition 2022.3.3 with the Scala plugin
 
 2. Set up `gvc0`
 
@@ -30,7 +30,16 @@ git clone -b position https://github.com/gradual-verification/gvc0.git
 git clone https://github.com/advancingdragon/c0.git
 ```
 
-Then
+3. Install [Z3](https://github.com/Z3Prover/z3/releases) and
+[cc0](https://bitbucket.org/c0-lang/docs/wiki/Downloads). For macOS runnning
+on Apple Silicon, install `cc0` from
+[https://nguyen.bz/compiler-c0.zip](https://nguyen.bz/compiler-c0.zip).
+
+Directories where Z3 and `cc0` binaries are located should be in `PATH`. Set
+environment variable `Z3_PATH` to directory where Z3 binary is located.
+`gmp` and `gnu-getopt` are also needed for the `cc0` compiler to work.
+
+4. Build `gvc0`
 
 ```
 cd ./silicon-gv
@@ -40,10 +49,6 @@ ln -s ../silicon-gv silicon
 sbt assembly
 ```
 
-3. Install [Z3](https://github.com/Z3Prover/z3/releases) and
-[cc0](https://bitbucket.org/c0-lang/docs/wiki/Downloads).
+5. Set environment variable `GVC0_PATH` to `gvc0` directory.
 
-Z3 and `cc0` binaries should be in `PATH`.
-
-Set environment variable `Z3_PATH` to location of Z3 binary, and
-environment variable `GVC0_PATH` to location of `gvc0` directory.
+6. Open project `c0` in IntelliJ IDEA.
