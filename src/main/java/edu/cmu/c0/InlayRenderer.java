@@ -13,17 +13,20 @@ import java.awt.geom.Rectangle2D;
 public class InlayRenderer implements EditorCustomElementRenderer {
     private final JBColor myColor;
     private final String myLabel;
-    private final String myOtherLabel;
+    private final String myLabel1;
+    private final String myLabel2;
     public InlayRenderer(JBColor color, String label) {
         myColor = color;
         myLabel = label;
-        myOtherLabel = "";
+        myLabel1 = "";
+        myLabel2 = "";
     }
 
-    public InlayRenderer(JBColor color, String label, String otherLabel) {
+    public InlayRenderer(JBColor color, String label, String label1, String label2) {
         myColor = color;
         myLabel = label;
-        myOtherLabel = otherLabel;
+        myLabel1 = label1;
+        myLabel2 = label2;
     }
 
     @Override
@@ -31,7 +34,7 @@ public class InlayRenderer implements EditorCustomElementRenderer {
         final var editor = inlay.getEditor();
         final var f = editor.getColorsScheme().getFont(EditorFontType.BOLD_ITALIC);
         final var fontMetrics = editor.getComponent().getFontMetrics(f);
-        return fontMetrics.stringWidth(myLabel + myOtherLabel);
+        return fontMetrics.stringWidth(myLabel + myLabel1);
     }
 
     @Override
@@ -45,12 +48,16 @@ public class InlayRenderer implements EditorCustomElementRenderer {
         g.setFont(f);
         g.setColor(myColor);
         g.drawString(myLabel, (int) r.getX(), y);
-        if (myOtherLabel.equals("")) {
+        if (myLabel1.equals("")) {
             return;
         }
-        g.setColor(new JBColor(0xFFC000, 0xFFC000));
+        g.setColor(new JBColor(0xC08000, 0xC08000));
         g.drawRect(((int) r.getX()) + labelWidth, (int) r.getY(),
-                fontMetrics.stringWidth(myOtherLabel), (int) r.getHeight());
-        g.drawString(myOtherLabel, (int) r.getX() + labelWidth, y);
+                fontMetrics.stringWidth(myLabel1), (int) r.getHeight());
+        g.drawString(myLabel1, (int) r.getX() + labelWidth, y);
+
+        final var twoLabelsWidth = fontMetrics.stringWidth(myLabel + myLabel1);
+        g.setColor(new JBColor(0x0080C0, 0x0080C0));
+        g.drawString(myLabel2, (int) r.getX() + twoLabelsWidth, y);
     }
 }
