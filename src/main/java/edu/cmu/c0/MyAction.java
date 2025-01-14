@@ -49,7 +49,9 @@ public class MyAction extends AnAction {
 
         // create new controller and new dummy inlay
         final var controller = new Controller(methods);
-        final var r = new InlayRenderer(JBColor.GREEN, "Verification successful");
+        final var r = SymbExLogger.errors().isEmpty() ?
+                new InlayRenderer(JBColor.GREEN, "No verification errors") :
+                new InlayRenderer(JBColor.RED, "Verification has errors");
         final var dummy = inlayModel.addAfterLineEndElement(0, false, r);
         assert dummy != null;
         // addEditorMouseListener takes a 2nd argument with a parentDisposable
@@ -57,22 +59,6 @@ public class MyAction extends AnAction {
         // the controller is removed as well
         editor.addEditorMouseListener(controller, dummy);
         controller.renderMethods(editor);
-
-        // render errors
-        final var markupModel = editor.getMarkupModel();
-        for (final var error : JavaConverters.seqAsJavaList(SymbExLogger.errors())) {
-            if (error.pos() instanceof TranslatedPosition pos) {
-                final var offset0 = document.getLineStartOffset(U.toIJ(pos.line()));
-                final var end = pos.end().get();
-                final var offset1 = document.getLineStartOffset(U.toIJ(end.line()));
-                final var attr = new TextAttributes(JBColor.BLACK, JBColor.RED, JBColor.RED, EffectType.BOXED, Font.BOLD);
-                markupModel.addRangeHighlighter(offset0 + U.toIJ(pos.column()),
-                        offset1 + U.toIJ(end.column()),
-                        U.LAYER_ERROR, attr, HighlighterTargetArea.EXACT_RANGE);
-                inlayModel.addAfterLineEndElement(offset0, false,
-                        new InlayRenderer(JBColor.RED, error.readableMessage()));
-            }
-        }
     }
 
     @Override

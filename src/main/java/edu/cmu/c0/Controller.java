@@ -23,7 +23,6 @@ public class Controller implements EditorMouseListener {
             method.renderInlays(editor);
         }
 
-        editor.getGutter().closeAllAnnotations();
         final var gutterProvider = new GutterProvider(editor.getDocument().getLineCount(), myMethods);
         editor.getGutter().registerTextAnnotation(gutterProvider);
     }
