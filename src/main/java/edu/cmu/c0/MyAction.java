@@ -2,9 +2,6 @@ package edu.cmu.c0;
 
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.editor.markup.EffectType;
-import com.intellij.openapi.editor.markup.HighlighterTargetArea;
-import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 
@@ -16,7 +13,6 @@ import viper.silver.ast.TranslatedPosition;
 
 import scala.collection.JavaConverters;
 
-import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,8 +37,9 @@ public class MyAction extends AnAction {
 
         for (final var symbLog : JavaConverters.seqAsJavaList(SymbExLogger.memberList())) {
             if (SymbExLogger.m(symbLog) instanceof MethodRecord methodRecord &&
-                    methodRecord.value().pos() instanceof TranslatedPosition) {
-                final var method = new Method(symbLog.log());
+                    methodRecord.value().pos() instanceof TranslatedPosition pos) {
+                SymbExLogger.populateWhileLoops(methodRecord.value().bodyOrAssumeFalse().ss());
+                final var method = new Method(symbLog.log(), pos);
                 methods.put(symbLog, method);
             }
         }

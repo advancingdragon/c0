@@ -17,8 +17,8 @@ import viper.silicon.logger.records.SymbolicRecord;
 import viper.silicon.logger.records.data.*;
 import viper.silicon.logger.records.structural.BranchingRecord;
 import viper.silicon.state.terms.Term;
-import viper.silver.ast.TranslatedPosition;
 import viper.silver.ast.Not;
+import viper.silver.ast.TranslatedPosition;
 
 import java.awt.*;
 import java.util.*;
@@ -32,11 +32,13 @@ public class Method {
     public record Path(Map<BranchingRecord, Boolean> forks, Set<ExecuteRecord> statements) { }
 
     private final Seq<SymbolicRecord> myLog;
+    private final TranslatedPosition myPos;
     private final List<Path> myPaths;
     private int myPathNumber;
 
-    public Method(Seq<SymbolicRecord> records) {
+    public Method(Seq<SymbolicRecord> records, TranslatedPosition pos) {
         myLog = records;
+        myPos = pos;
         myPaths = new ArrayList<>();
         traverse(myLog, false, new HashMap<>(), new HashSet<>());
         myPathNumber = 0;
@@ -110,9 +112,8 @@ public class Method {
                             offset1 + U.toIJ(end.column()),
                             U.LAYER_CONDITIONAL, attr, HighlighterTargetArea.EXACT_RANGE);
                 }
-                case EndRecord e &&
-                        e.value().pos() instanceof TranslatedPosition pos -> {
-                    final var offset = document.getLineStartOffset(U.toIJ(pos.end().get().line()));
+                case EndRecord e -> {
+                    final var offset = document.getLineStartOffset(U.toIJ(myPos.end().get().line()));
                     final var chunks$ = SymbExLogger.formatDiff((Iterable<Chunk>) Seq$.MODULE$.empty(), e.state().h().values());
                     final var pcs$ = SymbExLogger.formatPcs((ListSet<Term>) ListSet$.MODULE$.empty(), e.pcs());
                     final var renderer = new InlayRenderer(new JBColor(0xFF7000, 0xFF7000), chunks$._1(), chunks$._2(), pcs$);
@@ -140,21 +141,23 @@ public class Method {
                     oldChunks = x.state().h().values();
                     oldPcs = x.pcs();
                 }
-                case LoopInRecord i && i.pos() instanceof TranslatedPosition pos -> {
+                case LoopInRecord i -> {
+                    final var pos = (TranslatedPosition) SymbExLogger.whileLoops().get(i.value()).get().pos();
                     final var offset = document.getLineStartOffset(U.toIJ(pos.line()));
-                    final var chunks$ = SymbExLogger.formatDiff(oldChunks, i.state().h().values());
-                    final var pcs$ = SymbExLogger.formatPcs(oldPcs, i.pcs());
-                    final var renderer = new InlayRenderer(new JBColor(0x0070FF, 0x0070FF), chunks$._1(), chunks$._2(), pcs$);
+                    final var chunks$ = SymbExLogger.formatDiff((Iterable<Chunk>) Seq$.MODULE$.empty(), i.state().h().values());
+                    final var pcs$ = SymbExLogger.formatPcs((ListSet<Term>) ListSet$.MODULE$.empty(), i.pcs());
+                    final var renderer = new InlayRenderer(new JBColor(0x0070FF, 0x0070FF), "↪ " + chunks$._1(), chunks$._2(), pcs$);
                     inlayModel.addBlockElement(offset, false, true, 1, renderer);
                     oldChunks = i.state().h().values();
                     oldPcs = i.pcs();
                 }
-                case LoopOutRecord o && o.pos() instanceof TranslatedPosition pos -> {
-                    final var offset = document.getLineStartOffset(U.toIJ(pos.line()));
+                case LoopOutRecord o -> {
+                    final var pos = (TranslatedPosition) SymbExLogger.whileLoops().get(o.value()).get().pos();
+                    final var offset = document.getLineStartOffset(U.toIJ(pos.end().get().line()));
                     final var chunks$ = SymbExLogger.formatDiff((Iterable<Chunk>) Seq$.MODULE$.empty(), o.state().h().values());
                     final var pcs$ = SymbExLogger.formatPcs((ListSet<Term>) ListSet$.MODULE$.empty(), o.pcs());
-                    final var renderer = new InlayRenderer(new JBColor(0x609000, 0x609000), chunks$._1(), chunks$._2(), pcs$);
-                    inlayModel.addBlockElement(offset, false, false, 1, renderer);
+                    final var renderer = new InlayRenderer(new JBColor(0x609000, 0x609000), "↩ " + chunks$._1(), chunks$._2(), pcs$);
+                    inlayModel.addBlockElement(offset, false, true, 1, renderer);
                     oldChunks = o.state().h().values();
                     oldPcs = o.pcs();
                 }
