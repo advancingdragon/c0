@@ -5,7 +5,7 @@ import com.intellij.openapi.editor.markup.EffectType;
 import com.intellij.openapi.editor.markup.HighlighterTargetArea;
 import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.ui.JBColor;
-import scala.collection.Iterable;
+import org.jetbrains.annotations.NotNull;
 import scala.collection.JavaConverters;
 import scala.collection.Seq;
 import scala.collection.Seq$;
@@ -20,9 +20,13 @@ import viper.silicon.state.terms.Term;
 import viper.silver.ast.Not;
 import viper.silver.ast.TranslatedPosition;
 
-import java.awt.*;
-import java.util.*;
+import java.awt.Font;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class Method {
     // each path is uniquely identified by the set of branches that were taken
@@ -84,7 +88,10 @@ public class Method {
         }
     }
 
-    public void renderInlays(Seq<SymbolicRecord> records, Iterable<Chunk> oldChunks, ListSet<Term> oldPcs, Editor editor) {
+    public void renderInlays(Seq<SymbolicRecord> records,
+                             Seq<Chunk> oldChunks,
+                             ListSet<Term> oldPcs,
+                             @NotNull Editor editor) {
         final var document = editor.getDocument();
         final var inlayModel = editor.getInlayModel();
         final var markupModel = editor.getMarkupModel();
@@ -114,9 +121,13 @@ public class Method {
                 }
                 case EndRecord e -> {
                     final var offset = document.getLineStartOffset(U.toIJ(myPos.end().get().line()));
-                    final var chunks$ = SymbExLogger.formatDiff((Iterable<Chunk>) Seq$.MODULE$.empty(), e.state().h().values());
-                    final var pcs$ = SymbExLogger.formatPcs((ListSet<Term>) ListSet$.MODULE$.empty(), e.pcs());
-                    final var renderer = new InlayRenderer(new JBColor(0xFF7000, 0xFF7000), chunks$._1(), chunks$._2(), pcs$);
+                    final var newChunks = e.state().h().values().toSeq();
+                    SymbExLogger.populateSnaps(newChunks);
+                    final var diff$ = SymbExLogger.formatDiff(oldChunks, newChunks);
+                    final var heap$ = SymbExLogger.formatChunks(newChunks);
+                    final var pcs$ = SymbExLogger.formatPcs(oldPcs, e.pcs());
+                    final var store$ = SymbExLogger.formatStore(e.state().g());
+                    final var renderer = new InlayBoxRenderer(diff$._1(), diff$._2(), heap$, pcs$, store$);
                     inlayModel.addBlockElement(offset, false, false, 1, renderer);
                 }
                 case ErrorRecord r &&
@@ -134,31 +145,43 @@ public class Method {
                 case ExecuteRecord x &&
                         x.value().pos() instanceof TranslatedPosition pos -> {
                     final var offset = document.getLineStartOffset(U.toIJ(pos.line()));
-                    final var chunks$ = SymbExLogger.formatDiff(oldChunks, x.state().h().values());
+                    final var newChunks = x.state().h().values().toSeq();
+                    SymbExLogger.populateSnaps(newChunks);
+                    final var diff$ = SymbExLogger.formatDiff(oldChunks, newChunks);
+                    final var heap$ = SymbExLogger.formatChunks(newChunks);
                     final var pcs$ = SymbExLogger.formatPcs(oldPcs, x.pcs());
-                    final var renderer = new InlayRenderer(new JBColor(0xFF7000, 0xFF7000), chunks$._1(), chunks$._2(), pcs$);
+                    final var store$ = SymbExLogger.formatStore(x.state().g());
+                    final var renderer = new InlayBoxRenderer(diff$._1(), diff$._2(), heap$, pcs$, store$);
                     inlayModel.addBlockElement(offset, false, true, 1, renderer);
-                    oldChunks = x.state().h().values();
+                    oldChunks = newChunks;
                     oldPcs = x.pcs();
                 }
                 case LoopInRecord i -> {
                     final var pos = (TranslatedPosition) SymbExLogger.whileLoops().get(i.value()).get().pos();
                     final var offset = document.getLineStartOffset(U.toIJ(pos.line()));
-                    final var chunks$ = SymbExLogger.formatDiff((Iterable<Chunk>) Seq$.MODULE$.empty(), i.state().h().values());
-                    final var pcs$ = SymbExLogger.formatPcs((ListSet<Term>) ListSet$.MODULE$.empty(), i.pcs());
-                    final var renderer = new InlayRenderer(new JBColor(0x0070FF, 0x0070FF), "↪ " + chunks$._1(), chunks$._2(), pcs$);
+                    final var newChunks = i.state().h().values().toSeq();
+                    SymbExLogger.populateSnaps(newChunks);
+                    final var diff$ = SymbExLogger.formatDiff(oldChunks, newChunks);
+                    final var heap$ = SymbExLogger.formatChunks(newChunks);
+                    final var pcs$ = SymbExLogger.formatPcs(oldPcs, i.pcs());
+                    final var store$ = SymbExLogger.formatStore(i.state().g());
+                    final var renderer = new InlayBoxRenderer(diff$._1(), diff$._2(), heap$, "↪ " + pcs$, store$);
                     inlayModel.addBlockElement(offset, false, true, 1, renderer);
-                    oldChunks = i.state().h().values();
+                    oldChunks = newChunks;
                     oldPcs = i.pcs();
                 }
                 case LoopOutRecord o -> {
                     final var pos = (TranslatedPosition) SymbExLogger.whileLoops().get(o.value()).get().pos();
                     final var offset = document.getLineStartOffset(U.toIJ(pos.end().get().line()));
-                    final var chunks$ = SymbExLogger.formatDiff((Iterable<Chunk>) Seq$.MODULE$.empty(), o.state().h().values());
-                    final var pcs$ = SymbExLogger.formatPcs((ListSet<Term>) ListSet$.MODULE$.empty(), o.pcs());
-                    final var renderer = new InlayRenderer(new JBColor(0x609000, 0x609000), "↩ " + chunks$._1(), chunks$._2(), pcs$);
+                    final var newChunks = o.state().h().values().toSeq();
+                    SymbExLogger.populateSnaps(newChunks);
+                    final var diff$ = SymbExLogger.formatDiff(oldChunks, newChunks);
+                    final var heap$ = SymbExLogger.formatChunks(newChunks);
+                    final var pcs$ = SymbExLogger.formatPcs(oldPcs, o.pcs());
+                    final var store$ = SymbExLogger.formatStore(o.state().g());
+                    final var renderer = new InlayBoxRenderer(diff$._1(), diff$._2(), heap$, "↩ " + pcs$, store$);
                     inlayModel.addBlockElement(offset, false, true, 1, renderer);
-                    oldChunks = o.state().h().values();
+                    oldChunks = newChunks;
                     oldPcs = o.pcs();
                 }
                 default -> { }
@@ -166,7 +189,10 @@ public class Method {
         }
     }
 
-    public void renderInlays(Editor editor) {
-        renderInlays(myLog, (Iterable<Chunk>) Seq$.MODULE$.empty(), (ListSet<Term>) ListSet$.MODULE$.empty(), editor);
+    public void renderInlays(@NotNull Editor editor) {
+        renderInlays(myLog,
+                (Seq<Chunk>) Seq$.MODULE$.empty(),
+                (ListSet<Term>) ListSet$.MODULE$.empty(),
+                editor);
     }
 }

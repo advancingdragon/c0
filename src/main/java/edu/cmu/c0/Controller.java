@@ -2,6 +2,7 @@ package edu.cmu.c0;
 
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.event.EditorMouseEvent;
+import com.intellij.openapi.editor.event.EditorMouseEventArea;
 import com.intellij.openapi.editor.event.EditorMouseListener;
 import org.jetbrains.annotations.NotNull;
 import viper.silicon.logger.SymbExLogger;
@@ -14,11 +15,11 @@ import java.util.Map;
 public class Controller implements EditorMouseListener {
     private final Map<SymbLog, Method> myMethods;
 
-    public Controller(Map<SymbLog, Method> methods) {
+    public Controller(@NotNull Map<SymbLog, Method> methods) {
         myMethods = methods;
     }
 
-    public void renderMethods(Editor editor) {
+    public void renderMethods(@NotNull Editor editor) {
         for (final var method : myMethods.values()) {
             method.renderInlays(editor);
         }
@@ -29,6 +30,23 @@ public class Controller implements EditorMouseListener {
 
     @Override
     public void mouseClicked(@NotNull EditorMouseEvent event) {
+        final var inlay = event.getInlay();
+        if (event.getArea() == EditorMouseEventArea.EDITING_AREA &&
+                inlay != null &&
+                inlay.getRenderer() instanceof InlayBoxRenderer boxRenderer) {
+            // if heap state inlay clicked, toggle heap state inlay
+            boxRenderer.toggle();
+            inlay.repaint();
+            // update variable store tool window
+            VTableModel.getInstance().setVariables(boxRenderer.getStore());
+            VTableModel.getInstance().fireTableDataChanged();
+            return;
+        }
+
+        if (event.getArea() != EditorMouseEventArea.ANNOTATIONS_AREA) {
+            return;
+        }
+
         final var editor = event.getEditor();
         final var scrollingModel = editor.getScrollingModel();
         final var h = scrollingModel.getHorizontalScrollOffset();

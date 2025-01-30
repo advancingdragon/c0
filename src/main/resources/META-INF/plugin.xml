@@ -33,12 +33,12 @@
         <backspaceHandlerDelegate implementation="edu.cmu.c0.ResetOnBackspace" />
         <enterHandlerDelegate implementation="edu.cmu.c0.ResetOnEnter" />
         <typedHandler implementation="edu.cmu.c0.ResetTyped" />
+        <toolWindow factoryClass="edu.cmu.c0.VToolWindowFactory" id="Var" />
     </extensions>
     <actions>
-        <action id="edu.cmu.c0.MyAction" class="edu.cmu.c0.MyAction" text="Symbolic Execution"
-                description="Run symbolic execution verifier">
-            <add-to-group group-id="ToolsMenu" anchor="first"/>
-            <keyboard-shortcut keymap="$default" first-keystroke="shift alt S"/>
+        <action class="edu.cmu.c0.MyAction" id="edu.cmu.c0.MyAction" text="Symbolic Execution">
+            <add-to-group anchor="first" group-id="ToolsMenu" />
+            <keyboard-shortcut first-keystroke="shift alt S" keymap="$default" />
         </action>
     </actions>
 </idea-plugin>

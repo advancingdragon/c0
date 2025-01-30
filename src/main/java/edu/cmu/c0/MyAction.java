@@ -1,7 +1,10 @@
 package edu.cmu.c0;
 
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 
@@ -16,7 +19,7 @@ import scala.collection.JavaConverters;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MyAction extends AnAction {
+public class MyAction extends DumbAwareAction {
     public MyAction() { super(); }
 
     // VIPER/SILICON HAS 1-INDEX LINE COLUMN NUMBERS, BUT INTELLIJ HAS 0-INDEX LINE NUMBERS!!!
