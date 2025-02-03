@@ -30,9 +30,6 @@
             fieldName="INSTANCE"
             language="C0"
             extensions="c0" />
-        <backspaceHandlerDelegate implementation="edu.cmu.c0.ResetOnBackspace" />
-        <enterHandlerDelegate implementation="edu.cmu.c0.ResetOnEnter" />
-        <typedHandler implementation="edu.cmu.c0.ResetTyped" />
         <toolWindow factoryClass="edu.cmu.c0.VToolWindowFactory" id="Var" />
     </extensions>
     <actions>

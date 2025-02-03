@@ -1,5 +1,6 @@
 package edu.cmu.c0;
 
+import com.intellij.ide.IdeEventQueue;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -16,6 +17,7 @@ import viper.silver.ast.TranslatedPosition;
 
 import scala.collection.JavaConverters;
 
+import java.awt.event.KeyEvent;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -59,6 +61,11 @@ public class MyAction extends DumbAwareAction {
         // the controller is removed as well
         editor.addEditorMouseListener(controller, dummy);
         controller.renderMethods(editor);
+
+        IdeEventQueue.getInstance().addDispatcher(e -> {
+            if (e instanceof KeyEvent) { U.reset(editor); }
+            return false;
+        }, dummy);
     }
 
     @Override
