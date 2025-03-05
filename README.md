@@ -50,7 +50,7 @@ sbt assembly
 
 5. Set environment variable `GVC0_PATH` to `gvc0` directory.
 
-6. Open project `c0` in IntelliJ IDEA. Run > Debug 'Run Plugin'
+6. Open project `c0` in IntelliJ IDEA. Go to menu Run > Debug 'Run Plugin'.
 
 Installation on Windows (WSL not required)
 ------------------------------------------
@@ -61,8 +61,8 @@ Installation on Windows (WSL not required)
 
 - IntelliJ IDEA Ultimate or Community Edition 2022.3.3 with the Scala plugin
 
-Installing Scala is not required, IntelliJ IDEA will automatically install
-Scala and sbt the first a Scala project is opened.
+Installing Scala is not required as IntelliJ IDEA will automatically install
+Scala and sbt the first time a Scala project is opened.
 
 2. Set up `gvc0`
 
@@ -102,6 +102,6 @@ assembly
 
 5. Set environment variable `GVC0_PATH` to `gvc0` directory.
 
-6. Open project `c0` in IntelliJ IDEA. Go to menu: Run > Debug 'Run Plugin'
+6. Open project `c0` in IntelliJ IDEA. Go to menu Run > Debug 'Run Plugin'.
 
 Limitations: cannot run `cc0` yet, because it requires WSL.
