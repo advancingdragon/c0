@@ -29,9 +29,9 @@ public class GutterProvider implements TextAnnotationGutterProvider {
                     // only statements with valid positions have been added
                     final var pos = (TranslatedPosition) statement.value().pos();
                     if (i == method.getPathNumber()) {
-                        U.grow(myPathDiagram, U.toIJ(pos.line()), i, "█");
+                        U.grow(myPathDiagram, U.toIJ(pos.line()), i, "\u2593");
                     } else {
-                        U.grow(myPathDiagram, U.toIJ(pos.line()), i, "░");
+                        U.grow(myPathDiagram, U.toIJ(pos.line()), i, "\u2591");
                     }
                 }
             }
