@@ -88,7 +88,7 @@ exe file is located should be in the `Path` environment variable.
 
 ```
 cd silicon-gv
-mklink /d silver..\silver-gv
+mklink /d silver ..\silver-gv
 cd ..\gvc0
 mklink /d silicon ..\silicon-gv
 ```
