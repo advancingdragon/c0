@@ -26,7 +26,7 @@ Clone the following repositories into the same parent directory.
 ```
 git clone https://github.com/gradual-verification/silver-gv.git
 git clone https://github.com/gradual-verification/silicon-gv.git
-git clone -b position https://github.com/gradual-verification/gvc0.git
+git clone https://github.com/gradual-verification/gvc0.git
 git clone https://github.com/advancingdragon/c0.git
 ```
 
