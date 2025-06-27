@@ -6,6 +6,14 @@ plugins {
 group = "edu.cmu"
 version = "1.0-SNAPSHOT"
 
+sourceSets {
+    main {
+        java {
+            srcDirs("src/main/gen")
+        }
+    }
+}
+
 repositories {
     mavenCentral()
 }

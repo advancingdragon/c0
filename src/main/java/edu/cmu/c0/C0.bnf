@@ -1,0 +1,270 @@
+{
+  parserClass="edu.cmu.c0.parser.C0Parser"
+
+  extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
+
+  psiClassPrefix="C0"
+  psiImplClassSuffix="Impl"
+  psiPackage="edu.cmu.c0.psi"
+  psiImplPackage="edu.cmu.c0.psi.impl"
+
+  elementTypeHolderClass="edu.cmu.c0.psi.C0Types"
+  elementTypeClass="edu.cmu.c0.psi.C0ElementType"
+  tokenTypeClass="edu.cmu.c0.psi.C0TokenType"
+
+  extends("expr.*")=expr
+  tokens = [
+  NULL="NULL"
+  ACC="acc"
+  ALLOC="alloc"
+  ASSERT="assert"
+  BOOL="bool"
+  ELSE="else"
+  ENSURES="ensures"
+  FALSE="false"
+  FOLD="fold"
+  FOR="for"
+  IF="if"
+  IN="in"
+  INT="int"
+  LI="loop_invariant"
+  PREDICATE="predicate"
+  REQUIRES="requires"
+  RESULT="result"
+  RETURN="return"
+  STRUCT="struct"
+  TRUE="true"
+  TYPEDEF="typedef"
+  UNFOLD="unfold"
+  UNFOLDING="unfolding"
+  USE="use"
+  VOID="void"
+  WHILE="while"
+  HASH="#"
+  DOUBLEQUOTE="\""
+  LBRACE="{"
+  RBRACE="}"
+  LPAREN="("
+  RPAREN=")"
+  COMMA=","
+  SEMICOLON=";"
+  ASSIGN="="
+  ASSIGN_ADD="+="
+  ASSIGN_SUB="-="
+  ASSIGN_MUL="*="
+  ASSIGN_DIV="/="
+  ASSIGN_MOD="%="
+  ASSIGN_SHL="<<="
+  ASSIGN_SHR=">>="
+  ASSIGN_AND="&="
+  ASSIGN_XOR="^="
+  ASSIGN_OR="|="
+  QUESTION="?"
+  COLON=":"
+  LOGICAL_OR="||"
+  LOGICAL_AND="&&"
+  BITWISE_OR="|"
+  BITWISE_XOR="^"
+  BITWISE_AND="&"
+  EQ="=="
+  NE="!="
+  LE="<="
+  GE=">="
+  LT="<"
+  GT=">"
+  SHL="<<"
+  SHR=">>"
+  PLUS="+"
+  MINUS="-"
+  ASTERISK="*"
+  SLASH="/"
+  PERCENT="%"
+  LOGICAL_NOT="!"
+  BITWISE_NOT="~"
+  DOT="."
+  ARROW="->"
+  INC="++"
+  DEC="--"
+  BACKSLASH="\\"
+  ]
+}
+
+c0File ::= def*
+
+private def ::= defInclude
+  | defPredicates
+  | defMethod
+  | defStruct
+  | defType
+
+defInclude ::= '#' 'use' filename
+
+filename ::= '<' IDENTIFIER '>'
+  | '"' IDENTIFIER '"'
+
+defPredicates ::= SPEC_START defPredicate* SPEC_END
+
+defPredicate ::= 'predicate' IDENTIFIER '(' parameters ')' '=' expr ';'
+
+defMethod ::= typeReference IDENTIFIER '(' parameters? ')' specs* methodBody
+
+specs ::= SPEC_START spec* SPEC_END
+
+private spec ::= specRequires | specEnsures
+
+specRequires ::= 'requires' expr ';'
+
+specEnsures ::= 'ensures' expr ';'
+
+methodBody ::= ';'
+  | '{' stmt* '}'
+
+parameters ::= parameter ( ',' parameter )*
+
+parameter ::= typeReference IDENTIFIER
+
+defStruct ::= 'struct' IDENTIFIER structFields? ';'
+
+structFields ::= '{' structField* '}'
+
+structField ::= typeReference IDENTIFIER ';'
+
+defType ::= 'typedef' typeReference IDENTIFIER ';'
+
+typeReference ::= structReference typeModifier*
+
+structReference ::= 'struct' IDENTIFIER
+  | 'bool'
+  | 'int'
+  | 'void'
+  | IDENTIFIER
+
+typeModifier ::= '*'
+
+private stmt ::= ghosts
+  | stmtBlock
+  | stmtIf
+  | stmtWhile
+  | stmtFor
+  | stmtReturn
+  | stmtAssert
+  | stmtSimple ';'
+
+ghosts ::= SPEC_START ghost* SPEC_END
+
+private ghost ::= ghostAssert
+  | ghostFold
+  | ghostUnfold
+
+ghostAssert ::= 'assert' expr ';'
+
+ghostFold ::= 'fold' IDENTIFIER '(' exprs ')' ';'
+
+ghostUnfold ::= 'unfold' IDENTIFIER '(' exprs ')' ';'
+
+stmtBlock ::= '{' stmt* '}'
+
+stmtIf ::= 'if' '(' expr ')' stmt ( 'else' stmt )?
+
+stmtWhile ::= 'while' '(' expr ')' invariants* stmt
+
+stmtFor ::= 'for' '(' stmtSimple ';' expr ';' stmtExpr ')' invariants* stmt
+
+invariants ::= SPEC_START invariant* SPEC_END
+
+invariant ::= 'loop_invariant' expr ';'
+
+stmtReturn ::= 'return' expr? ';'
+
+stmtAssert ::= 'assert' '(' expr ')' ';'
+
+private stmtSimple ::= stmtVar | stmtExpr
+
+stmtVar ::= typeReference IDENTIFIER ( '=' expr )?
+
+stmtExpr ::= expr ( assignOp expr )?
+
+assignOp ::= '='
+  | '+=' | '-=' | '*=' | '/=' | '%=' | '<<=' | '>>=' | '&=' | '^=' | '|='
+
+expr ::= expr0
+  | expr1
+  | expr2
+  | expr3
+  | expr4
+  | expr5
+  | level6
+  | level7
+  | level8
+  | level9
+  | levelA
+  | levelB
+  | levelC
+  | levelD
+  {extraRoot=true}
+
+private level6 ::= exprEq | exprNe
+private level7 ::= exprLe | exprGe | exprLt | exprGt
+private level8 ::= exprShl | exprShr
+private level9 ::= exprAdd | exprSub
+private levelA ::= exprMul | exprDiv | exprMod
+private levelB ::= exprRef | exprNeg | exprLogicalNot | exprBitwiseNot
+private levelC ::= exprDot | exprArrow | exprInc | exprDec
+private levelD ::= exprParen
+  | exprNull
+  | exprBool
+  | exprNumber10
+  | exprNumber16
+  | exprResult
+  | exprImprecision
+  | exprAcc
+  | exprAlloc
+  | exprUnfolding
+  | exprInvoke
+  | exprId
+
+expr0 ::= expr '?' expr ':' expr { rightAssociative=true }
+expr1 ::= expr '||' expr
+expr2 ::= expr '&&' expr
+expr3 ::= expr '|' expr
+expr4 ::= expr '^' expr
+expr5 ::= expr '&' expr
+
+exprEq ::= expr '==' expr
+exprNe ::= expr '!=' expr
+exprLe ::= expr '<=' expr
+exprGe ::= expr '>=' expr
+exprLt ::= expr '<' expr
+exprGt ::= expr '>' expr
+exprShl ::= expr '<<' expr
+exprShr ::= expr '>>' expr
+exprAdd ::= expr '+' expr
+exprSub ::= expr '-' expr
+exprMul ::= expr '*' expr
+exprDiv ::= expr '/' expr
+exprMod ::= expr '%' expr
+
+exprRef ::= '*' expr { rightAssociative=true }
+exprNeg ::= '-' expr { rightAssociative=true }
+exprLogicalNot ::= '!' expr { rightAssociative=true }
+exprBitwiseNot ::= '~' expr { rightAssociative=true }
+
+exprDot ::= expr '.' IDENTIFIER
+exprArrow ::= expr '->' IDENTIFIER
+exprInc ::= expr '++'
+exprDec ::= expr '--'
+
+exprParen ::= '(' expr ')'
+exprNull ::= 'NULL'
+exprBool ::= 'true' | 'false'
+exprNumber10 ::= NUMBER_10
+exprNumber16 ::= NUMBER_16
+exprResult ::= '\\' 'result'
+exprImprecision ::= '?'
+exprAcc ::= 'acc' '(' expr ')'
+exprAlloc ::= 'alloc' '(' typeReference ')'
+exprUnfolding ::= 'unfolding' IDENTIFIER '(' exprs ')' 'in' '(' expr ')'
+exprInvoke ::= IDENTIFIER '(' exprs* ')'
+exprId ::= IDENTIFIER
+
+exprs ::= expr ( ',' expr )*

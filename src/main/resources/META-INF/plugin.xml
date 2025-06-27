@@ -30,6 +30,12 @@
             fieldName="INSTANCE"
             language="C0"
             extensions="c0" />
+        <lang.parserDefinition
+            language="C0"
+            implementationClass="edu.cmu.c0.C0ParserDefinition" />
+        <lang.syntaxHighlighterFactory
+            language="C0"
+            implementationClass="edu.cmu.c0.C0SyntaxHighlighterFactory" />
         <toolWindow factoryClass="edu.cmu.c0.VToolWindowFactory" id="Var" />
     </extensions>
     <actions>
