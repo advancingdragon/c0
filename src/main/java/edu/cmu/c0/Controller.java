@@ -34,11 +34,8 @@ public class Controller implements EditorMouseListener {
         if (event.getArea() == EditorMouseEventArea.EDITING_AREA &&
                 inlay != null &&
                 inlay.getRenderer() instanceof InlayBoxRenderer boxRenderer) {
-            // if heap state inlay clicked, toggle heap state inlay
-            boxRenderer.toggle();
-            inlay.repaint();
-            // update variable store tool window
-            VTableModel.getInstance().setVariables(boxRenderer.getStore());
+            // if symbolic state inlay clicked, update tool window
+            VTableModel.getInstance().setState(boxRenderer.getState());
             VTableModel.getInstance().fireTableDataChanged();
             return;
         }

@@ -121,13 +121,7 @@ public class Method {
                 }
                 case EndRecord e -> {
                     final var offset = document.getLineStartOffset(U.toIJ(myPos.end().get().line()));
-                    final var newChunks = e.state().h().values().toSeq();
-                    SymbExLogger.populateSnaps(newChunks);
-                    final var diff$ = SymbExLogger.formatDiff(oldChunks, newChunks);
-                    final var heap$ = SymbExLogger.formatChunks(newChunks);
-                    final var pcs$ = SymbExLogger.formatPcs(oldPcs, e.pcs());
-                    final var store$ = SymbExLogger.formatStore(e.state().g());
-                    final var renderer = new InlayBoxRenderer(diff$._1(), diff$._2(), heap$, pcs$, store$);
+                    final var renderer = new InlayBoxRenderer(oldChunks, oldPcs, e.state(), e.pcs());
                     inlayModel.addBlockElement(offset, false, false, 1, renderer);
                 }
                 case ErrorRecord r &&
@@ -145,43 +139,25 @@ public class Method {
                 case ExecuteRecord x &&
                         x.value().pos() instanceof TranslatedPosition pos -> {
                     final var offset = document.getLineStartOffset(U.toIJ(pos.line()));
-                    final var newChunks = x.state().h().values().toSeq();
-                    SymbExLogger.populateSnaps(newChunks);
-                    final var diff$ = SymbExLogger.formatDiff(oldChunks, newChunks);
-                    final var heap$ = SymbExLogger.formatChunks(newChunks);
-                    final var pcs$ = SymbExLogger.formatPcs(oldPcs, x.pcs());
-                    final var store$ = SymbExLogger.formatStore(x.state().g());
-                    final var renderer = new InlayBoxRenderer(diff$._1(), diff$._2(), heap$, pcs$, store$);
+                    final var renderer = new InlayBoxRenderer(oldChunks, oldPcs, x.state(), x.pcs());
                     inlayModel.addBlockElement(offset, false, true, 1, renderer);
-                    oldChunks = newChunks;
+                    oldChunks = x.state().h().values().toSeq();
                     oldPcs = x.pcs();
                 }
                 case LoopInRecord i -> {
                     final var pos = (TranslatedPosition) SymbExLogger.whileLoops().get(i.value()).get().pos();
                     final var offset = document.getLineStartOffset(U.toIJ(pos.line()));
-                    final var newChunks = i.state().h().values().toSeq();
-                    SymbExLogger.populateSnaps(newChunks);
-                    final var diff$ = SymbExLogger.formatDiff(oldChunks, newChunks);
-                    final var heap$ = SymbExLogger.formatChunks(newChunks);
-                    final var pcs$ = SymbExLogger.formatPcs(oldPcs, i.pcs());
-                    final var store$ = SymbExLogger.formatStore(i.state().g());
-                    final var renderer = new InlayBoxRenderer(diff$._1(), diff$._2(), heap$, "↪ " + pcs$, store$);
+                    final var renderer = new InlayBoxRenderer(oldChunks, oldPcs, i.state(), i.pcs());
                     inlayModel.addBlockElement(offset, false, true, 1, renderer);
-                    oldChunks = newChunks;
+                    oldChunks = i.state().h().values().toSeq();
                     oldPcs = i.pcs();
                 }
                 case LoopOutRecord o -> {
                     final var pos = (TranslatedPosition) SymbExLogger.whileLoops().get(o.value()).get().pos();
                     final var offset = document.getLineStartOffset(U.toIJ(pos.end().get().line()));
-                    final var newChunks = o.state().h().values().toSeq();
-                    SymbExLogger.populateSnaps(newChunks);
-                    final var diff$ = SymbExLogger.formatDiff(oldChunks, newChunks);
-                    final var heap$ = SymbExLogger.formatChunks(newChunks);
-                    final var pcs$ = SymbExLogger.formatPcs(oldPcs, o.pcs());
-                    final var store$ = SymbExLogger.formatStore(o.state().g());
-                    final var renderer = new InlayBoxRenderer(diff$._1(), diff$._2(), heap$, "↩ " + pcs$, store$);
+                    final var renderer = new InlayBoxRenderer(oldChunks, oldPcs, o.state(), o.pcs());
                     inlayModel.addBlockElement(offset, false, true, 1, renderer);
-                    oldChunks = newChunks;
+                    oldChunks = o.state().h().values().toSeq();
                     oldPcs = o.pcs();
                 }
                 default -> { }

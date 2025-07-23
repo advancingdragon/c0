@@ -36,7 +36,7 @@
         <lang.syntaxHighlighterFactory
             language="C0"
             implementationClass="edu.cmu.c0.C0SyntaxHighlighterFactory" />
-        <toolWindow factoryClass="edu.cmu.c0.VToolWindowFactory" id="Var" />
+        <toolWindow factoryClass="edu.cmu.c0.VToolWindowFactory" id="View State" />
     </extensions>
     <actions>
         <action class="edu.cmu.c0.MyAction" id="edu.cmu.c0.MyAction" text="Symbolic Execution">

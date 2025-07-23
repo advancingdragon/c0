@@ -1,18 +1,19 @@
 package edu.cmu.c0;
 
 import org.jetbrains.annotations.NotNull;
-import scala.Tuple2;
-import scala.collection.Seq;
-import scala.collection.Seq$;
+import org.jetbrains.annotations.Nullable;
+import viper.silicon.logger.SymbExLogger;
+import viper.silicon.state.State;
 
 import javax.swing.table.AbstractTableModel;
 
 public class VTableModel extends AbstractTableModel {
     private static VTableModel SINGLETON_INSTANCE = null;
-    private Seq<Tuple2<String, String>> myVariables;
+    @Nullable
+    private State myState;
 
     public VTableModel() {
-        myVariables = (Seq<Tuple2<String, String>>) Seq$.MODULE$.empty();
+        myState = null;
     }
 
     @NotNull
@@ -23,8 +24,8 @@ public class VTableModel extends AbstractTableModel {
         return SINGLETON_INSTANCE;
     }
 
-    public void setVariables(Seq<Tuple2<String, String>> variables) {
-        myVariables = variables;
+    public void setState(State state) {
+        myState = state;
     }
 
     @Override
@@ -34,14 +35,16 @@ public class VTableModel extends AbstractTableModel {
 
     @Override
     public int getRowCount() {
-        return myVariables.size();
+        return 2;
     }
 
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
         return switch (columnIndex) {
-            case 0 -> myVariables.apply(rowIndex)._1();
-            case 1 -> myVariables.apply(rowIndex)._2();
+            case 0 -> rowIndex == 0 ? "Heap" : "Optimistic Heap";
+            case 1 -> myState == null? "" :
+                rowIndex == 0 ? SymbExLogger.formatChunks(myState.h().values().toSeq()).mkString() :
+                    SymbExLogger.formatChunks(myState.optimisticHeap().values().toSeq()).mkString();
             default -> "";
         };
     }
