@@ -129,7 +129,7 @@ public class Method {
                     final var offset0 = document.getLineStartOffset(U.toIJ(pos.line()));
                     final var end = pos.end().get();
                     final var offset1 = document.getLineStartOffset(U.toIJ(end.line()));
-                    final var attr = new TextAttributes(JBColor.BLACK, JBColor.RED, JBColor.RED, EffectType.BOXED, Font.BOLD);
+                    final var attr = new TextAttributes(JBColor.BLACK, JBColor.PINK, JBColor.PINK, EffectType.BOXED, Font.BOLD);
                     markupModel.addRangeHighlighter(offset0 + U.toIJ(pos.column()),
                             offset1 + U.toIJ(end.column()),
                             U.LAYER_ERROR, attr, HighlighterTargetArea.EXACT_RANGE);

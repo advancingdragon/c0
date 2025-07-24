@@ -21,9 +21,16 @@
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
     <depends>com.intellij.modules.platform</depends>
 
+    <applicationListeners>
+        <listener class="edu.cmu.c0.ResetListener" topic="com.intellij.openapi.command.CommandListener" />
+    </applicationListeners>
+
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
+        <copyPastePreProcessor implementation="edu.cmu.c0.ResetPaste" />
+        <enterHandlerDelegate implementation="edu.cmu.c0.ResetEnter" />
+        <backspaceHandlerDelegate implementation="edu.cmu.c0.ResetBackspace" />
         <fileType
             name="C0 File"
             implementationClass="edu.cmu.c0.C0FileType"
