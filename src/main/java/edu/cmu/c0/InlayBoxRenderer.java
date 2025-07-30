@@ -26,6 +26,7 @@ public class InlayBoxRenderer implements EditorCustomElementRenderer {
     public static final JBColor MAIN_COLOR = new JBColor(0xC08000, 0xC08000);
 
     private final State myState;
+    private final ListSet<Term> myNewPCs;
     private final ArrayList<StringBuilder> myConsumedList;
     private final ArrayList<StringBuilder> myProducedNewList;
 
@@ -41,22 +42,27 @@ public class InlayBoxRenderer implements EditorCustomElementRenderer {
         }
     }
 
-    public InlayBoxRenderer(Seq<Chunk> oldChunks, ListSet<Term> oldPcs,
-                            State state, ListSet<Term> newPcs) {
+    public InlayBoxRenderer(Seq<Chunk> oldChunks, ListSet<Term> oldPCs,
+                            State state, ListSet<Term> newPCs) {
         myState = state;
+        myNewPCs = newPCs;
         final var newChunks = state.h().values().toSeq();
         SymbExLogger.populateSnaps(newChunks);
         final var diff$ = SymbExLogger.formatChunksDiff(oldChunks, newChunks);
-        final var pcs$ = SymbExLogger.formatPcs(oldPcs, newPcs);
+        final var _PCs$ = SymbExLogger.formatPCs(oldPCs, newPCs);
         myConsumedList = new ArrayList<>();
         myProducedNewList = new ArrayList<>();
         addToList(myConsumedList, diff$._1());
         addToList(myProducedNewList, diff$._2());
-        addToList(myProducedNewList, pcs$);
+        addToList(myProducedNewList, _PCs$);
     }
 
     public State getState() {
         return myState;
+    }
+
+    public ListSet<Term> getNewPCs() {
+        return myNewPCs;
     }
 
     @Override

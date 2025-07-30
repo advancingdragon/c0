@@ -9,6 +9,8 @@ public class VToolWindowPanel extends SimpleToolWindowPanel {
     public VToolWindowPanel() {
         super(true);
         myTable = new JBTable(VTableModel.getInstance());
+        myTable.getColumnModel().getColumn(1).setCellRenderer(new VTableCellRenderer());
         add(myTable);
+
     }
 }

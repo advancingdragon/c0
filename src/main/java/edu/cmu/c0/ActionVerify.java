@@ -19,8 +19,8 @@ import scala.collection.JavaConverters;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MyAction extends DumbAwareAction {
-    public MyAction() { super(); }
+public class ActionVerify extends DumbAwareAction {
+    public ActionVerify() { super(); }
 
     // VIPER/SILICON HAS 1-INDEX LINE COLUMN NUMBERS, BUT INTELLIJ HAS 0-INDEX LINE NUMBERS!!!
     @Override

@@ -90,7 +90,7 @@ public class Method {
 
     public void renderInlays(Seq<SymbolicRecord> records,
                              Seq<Chunk> oldChunks,
-                             ListSet<Term> oldPcs,
+                             ListSet<Term> oldPCs,
                              @NotNull Editor editor) {
         final var document = editor.getDocument();
         final var inlayModel = editor.getInlayModel();
@@ -100,9 +100,9 @@ public class Method {
                 case BranchingRecord b &&
                         myPaths.get(myPathNumber).forks.containsKey(b) -> {
                     if (myPaths.get(myPathNumber).forks.get(b)) {
-                        renderInlays(b.getBranches().apply(0), oldChunks, oldPcs, editor);
+                        renderInlays(b.getBranches().apply(0), oldChunks, oldPCs, editor);
                     } else {
-                        renderInlays(b.getBranches().apply(1), oldChunks, oldPcs, editor);
+                        renderInlays(b.getBranches().apply(1), oldChunks, oldPCs, editor);
                     }
                 }
                 case ConditionalEdgeRecord c &&
@@ -121,7 +121,7 @@ public class Method {
                 }
                 case EndRecord e -> {
                     final var offset = document.getLineStartOffset(U.toIJ(myPos.end().get().line()));
-                    final var renderer = new InlayBoxRenderer(oldChunks, oldPcs, e.state(), e.pcs());
+                    final var renderer = new InlayBoxRenderer(oldChunks, oldPCs, e.state(), e.pcs());
                     inlayModel.addBlockElement(offset, false, false, 1, renderer);
                 }
                 case ErrorRecord r &&
@@ -139,26 +139,26 @@ public class Method {
                 case ExecuteRecord x &&
                         x.value().pos() instanceof TranslatedPosition pos -> {
                     final var offset = document.getLineStartOffset(U.toIJ(pos.line()));
-                    final var renderer = new InlayBoxRenderer(oldChunks, oldPcs, x.state(), x.pcs());
+                    final var renderer = new InlayBoxRenderer(oldChunks, oldPCs, x.state(), x.pcs());
                     inlayModel.addBlockElement(offset, false, true, 1, renderer);
                     oldChunks = x.state().h().values().toSeq();
-                    oldPcs = x.pcs();
+                    oldPCs = x.pcs();
                 }
                 case LoopInRecord i -> {
                     final var pos = (TranslatedPosition) SymbExLogger.whileLoops().get(i.value()).get().pos();
                     final var offset = document.getLineStartOffset(U.toIJ(pos.line()));
-                    final var renderer = new InlayBoxRenderer(oldChunks, oldPcs, i.state(), i.pcs());
+                    final var renderer = new InlayBoxRenderer(oldChunks, oldPCs, i.state(), i.pcs());
                     inlayModel.addBlockElement(offset, false, true, 1, renderer);
                     oldChunks = i.state().h().values().toSeq();
-                    oldPcs = i.pcs();
+                    oldPCs = i.pcs();
                 }
                 case LoopOutRecord o -> {
                     final var pos = (TranslatedPosition) SymbExLogger.whileLoops().get(o.value()).get().pos();
                     final var offset = document.getLineStartOffset(U.toIJ(pos.end().get().line()));
-                    final var renderer = new InlayBoxRenderer(oldChunks, oldPcs, o.state(), o.pcs());
+                    final var renderer = new InlayBoxRenderer(oldChunks, oldPCs, o.state(), o.pcs());
                     inlayModel.addBlockElement(offset, false, true, 1, renderer);
                     oldChunks = o.state().h().values().toSeq();
-                    oldPcs = o.pcs();
+                    oldPCs = o.pcs();
                 }
                 default -> { }
             }

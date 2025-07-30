@@ -57,6 +57,10 @@ public class U {
         }
         // reset gutter
         editor.getGutter().closeAllAnnotations();
+        // reset viewer table
+        final var instance = VTableModel.getInstance();
+        instance.reset();
+        instance.fireTableDataChanged();
     }
 
     public static void reset(@NotNull Editor editor) {

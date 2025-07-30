@@ -8,7 +8,7 @@
     <name>C0 Gradual Verifier</name>
 
     <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
-    <vendor email="longtien@andrew.cmu.edu" url="https://nguyen.bz">Long Tien Nguyen</vendor>
+    <vendor email="longtien@cs.cmu.edu" url="https://nguyen.bz">Long Tien Nguyen</vendor>
 
     <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
          Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
@@ -46,9 +46,13 @@
         <toolWindow factoryClass="edu.cmu.c0.VToolWindowFactory" id="View State" />
     </extensions>
     <actions>
-        <action class="edu.cmu.c0.MyAction" id="edu.cmu.c0.MyAction" text="Symbolic Execution">
-            <add-to-group anchor="first" group-id="ToolsMenu" />
-            <keyboard-shortcut first-keystroke="shift alt S" keymap="$default" />
+        <action class="edu.cmu.c0.ActionReset" id="edu.cmu.c0.ActionReset" text="Reset Verification">
+            <add-to-group anchor="last" group-id="BuildMenu" />
+            <keyboard-shortcut first-keystroke="ESCAPE" keymap="$default" />
+        </action>
+        <action class="edu.cmu.c0.ActionVerify" id="edu.cmu.c0.ActionVerify" text="Verify File">
+            <add-to-group anchor="last" group-id="BuildMenu" />
+            <keyboard-shortcut first-keystroke="control alt V" keymap="$default" />
         </action>
     </actions>
 </idea-plugin>

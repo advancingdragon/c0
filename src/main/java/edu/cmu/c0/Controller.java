@@ -35,8 +35,10 @@ public class Controller implements EditorMouseListener {
                 inlay != null &&
                 inlay.getRenderer() instanceof InlayBoxRenderer boxRenderer) {
             // if symbolic state inlay clicked, update tool window
-            VTableModel.getInstance().setState(boxRenderer.getState());
-            VTableModel.getInstance().fireTableDataChanged();
+            final var instance = VTableModel.getInstance();
+            instance.setState(boxRenderer.getState());
+            instance.setNewPCs(boxRenderer.getNewPCs());
+            instance.fireTableDataChanged();
             return;
         }
 
