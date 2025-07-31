@@ -19,6 +19,16 @@ public class Controller implements EditorMouseListener {
         myMethods = methods;
     }
 
+    public void deselectBlockInlays(@NotNull Editor editor) {
+        final var document = editor.getDocument();
+        final var inlayModel = editor.getInlayModel();
+        for (final var inlay : inlayModel.getBlockElementsInRange(0,
+                document.getTextLength()-1, InlayBoxRenderer.class)) {
+            inlay.getRenderer().deselect();
+            inlay.repaint();
+        }
+    }
+
     public void renderMethods(@NotNull Editor editor) {
         for (final var method : myMethods.values()) {
             method.renderInlays(editor);
@@ -30,10 +40,16 @@ public class Controller implements EditorMouseListener {
 
     @Override
     public void mouseClicked(@NotNull EditorMouseEvent event) {
+        final var editor = event.getEditor();
         final var inlay = event.getInlay();
         if (event.getArea() == EditorMouseEventArea.EDITING_AREA &&
                 inlay != null &&
                 inlay.getRenderer() instanceof InlayBoxRenderer boxRenderer) {
+            // deselect all block inlays first
+            deselectBlockInlays(editor);
+            // mark inlay as selected
+            boxRenderer.select();
+            inlay.repaint();
             // if symbolic state inlay clicked, update tool window
             final var instance = VTableModel.getInstance();
             instance.setState(boxRenderer.getState());
@@ -46,7 +62,6 @@ public class Controller implements EditorMouseListener {
             return;
         }
 
-        final var editor = event.getEditor();
         final var scrollingModel = editor.getScrollingModel();
         final var h = scrollingModel.getHorizontalScrollOffset();
         final var v = scrollingModel.getVerticalScrollOffset();

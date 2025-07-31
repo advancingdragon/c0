@@ -22,13 +22,14 @@ public class InlayBoxRenderer implements EditorCustomElementRenderer {
     public static final int MAX_LINE_LENGTH = 80;
     public static final JBColor BG_CONSUMED_COLOR = new JBColor(0xFFECFF, 0xFFECFF);
     public static final JBColor BG_MAIN_COLOR = new JBColor(0xECFFFF, 0xECFFFF);
-    public static final JBColor CONSUMED_COLOR = new JBColor(0x609000, 0x609000);
-    public static final JBColor MAIN_COLOR = new JBColor(0xC08000, 0xC08000);
+    public static final JBColor CONSUMED_COLOR = new JBColor(0x800060, 0x800060);
+    public static final JBColor MAIN_COLOR = new JBColor(0x0000C0, 0x0000C0);
 
     private final State myState;
     private final ListSet<Term> myNewPCs;
     private final ArrayList<StringBuilder> myConsumedList;
     private final ArrayList<StringBuilder> myProducedNewList;
+    private boolean mySelected;
 
     private void addToList(ArrayList<StringBuilder> list, Seq<String> strings) {
         for (final var string : JavaConverters.asJavaIterable(strings)) {
@@ -55,6 +56,7 @@ public class InlayBoxRenderer implements EditorCustomElementRenderer {
         addToList(myConsumedList, diff$._1());
         addToList(myProducedNewList, diff$._2());
         addToList(myProducedNewList, _PCs$);
+        mySelected = false;
     }
 
     public State getState() {
@@ -63,6 +65,14 @@ public class InlayBoxRenderer implements EditorCustomElementRenderer {
 
     public ListSet<Term> getNewPCs() {
         return myNewPCs;
+    }
+
+    public void select() {
+        mySelected = true;
+    }
+
+    public void deselect() {
+        mySelected = false;
     }
 
     @Override
@@ -87,10 +97,10 @@ public class InlayBoxRenderer implements EditorCustomElementRenderer {
         final var fontMetrics = editor.getComponent().getFontMetrics(f);
         final var width = fontMetrics.stringWidth(" ".repeat(MAX_LINE_LENGTH));
         g.setFont(f);
-        g.setColor(BG_CONSUMED_COLOR);
+        g.setColor(mySelected ? CONSUMED_COLOR : BG_CONSUMED_COLOR);
         g.fillRect((int) r.getX(), (int) r.getY(), width, myConsumedList.size() * editor.getLineHeight());
 
-        g.setColor(CONSUMED_COLOR);
+        g.setColor(mySelected ? BG_CONSUMED_COLOR : CONSUMED_COLOR);
         for (final var stringBuilder : myConsumedList) {
             g.drawString(stringBuilder.toString(), (int) r.getX(), y);
             y += editor.getLineHeight();
@@ -98,10 +108,10 @@ public class InlayBoxRenderer implements EditorCustomElementRenderer {
 
         // the correct way to calculate the vertical position is y - ascent
         final var mainY = y - editor.getAscent();
-        g.setColor(BG_MAIN_COLOR);
+        g.setColor(mySelected ? MAIN_COLOR : BG_MAIN_COLOR);
         g.fillRect((int) r.getX(), mainY, width, myProducedNewList.size() * editor.getLineHeight());
 
-        g.setColor(MAIN_COLOR);
+        g.setColor(mySelected ? BG_MAIN_COLOR : MAIN_COLOR);
         for (final var stringBuilder : myProducedNewList) {
             g.drawString(stringBuilder.toString(), (int) r.getX(), y);
             y += editor.getLineHeight();
