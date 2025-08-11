@@ -2,6 +2,7 @@ package edu.cmu.c0;
 
 import org.jetbrains.annotations.NotNull;
 import scala.collection.JavaConverters;
+import scala.collection.Seq;
 import scala.collection.immutable.ListSet;
 import scala.collection.immutable.ListSet$;
 import viper.silicon.logger.SymbExLogger;
@@ -16,6 +17,10 @@ public class VTableModel extends AbstractTableModel {
     private State myState;
     @NotNull
     private ListSet<Term> myNewPCs;
+
+    private static String[] toArray(Seq<String> seq) {
+        return JavaConverters.seqAsJavaList(seq).toArray(new String[]{});
+    }
 
     public VTableModel() {
         reset();
@@ -49,23 +54,26 @@ public class VTableModel extends AbstractTableModel {
 
     @Override
     public int getRowCount() {
-        return 3;
+        return 4 + myState.g().values().size();
     }
 
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
         if (columnIndex == 1) {
-            final var seq = switch (rowIndex) {
-                case 0 -> SymbExLogger.formatChunks(myState.h().values().toSeq());
-                case 1 -> SymbExLogger.formatChunks(myState.optimisticHeap().values().toSeq());
-                default -> SymbExLogger.formatPCs((ListSet<Term>) ListSet$.MODULE$.empty(), myNewPCs);
+            return switch (rowIndex) {
+                case 0 -> toArray(SymbExLogger.formatChunks(myState.h().values().toSeq()));
+                case 1 -> toArray(SymbExLogger.formatChunks(myState.optimisticHeap().values().toSeq()));
+                case 2 -> toArray(SymbExLogger.formatPCs((ListSet<Term>) ListSet$.MODULE$.empty(), myNewPCs));
+                case 3 -> new String[] { "------------------------------------------------" };
+                default -> new String[] { SymbExLogger.formatStore(myState.g()).apply(rowIndex - 4)._2 };
             };
-            return JavaConverters.seqAsJavaList(seq).toArray(new String[]{});
         } else {
             return switch (rowIndex) {
                 case 0 -> "Permissions";
                 case 1 -> "\uD83D\uDE3A";
-                default -> "Constraints";
+                case 2 -> "Constraints";
+                case 3 -> "------------------------------------------------";
+                default -> SymbExLogger.formatStore(myState.g()).apply(rowIndex - 4)._1;
             };
         }
     }
