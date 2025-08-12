@@ -135,6 +135,11 @@ public class Method {
                             U.LAYER_ERROR, attr, HighlighterTargetArea.EXACT_RANGE);
                     inlayModel.addAfterLineEndElement(offset0, false,
                             new InlayRenderer(JBColor.RED, r.error().readableMessage()));
+                    // Need to display state right before error happened as well
+                    // This state is displayed below the error since the state
+                    // of the last executed statement is displayed above
+                    final var renderer = new InlayBoxRenderer(oldChunks, oldPCs, r.state(), r.pcs());
+                    inlayModel.addBlockElement(offset0, false, false, 1, renderer);
                 }
                 case ExecuteRecord x &&
                         x.value().pos() instanceof TranslatedPosition pos -> {

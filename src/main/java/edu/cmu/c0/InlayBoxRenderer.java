@@ -31,14 +31,14 @@ public class InlayBoxRenderer implements EditorCustomElementRenderer {
     private final ArrayList<StringBuilder> myProducedNewList;
     private boolean mySelected;
 
-    private void addToList(ArrayList<StringBuilder> list, Seq<String> strings) {
+    private void addToList(ArrayList<StringBuilder> list, String prefix, Seq<String> strings) {
         for (final var string : JavaConverters.asJavaIterable(strings)) {
             if (list.isEmpty()) {
-                list.add(new StringBuilder(string));
+                list.add(new StringBuilder(prefix + string));
             } else if (list.get(list.size() - 1).length() + string.length() < MAX_LINE_LENGTH) {
                 list.get(list.size() - 1).append(string);
             } else {
-                list.add(new StringBuilder(string));
+                list.add(new StringBuilder(prefix + string));
             }
         }
     }
@@ -53,9 +53,9 @@ public class InlayBoxRenderer implements EditorCustomElementRenderer {
         final var _PCs$ = SymbExLogger.formatPCs(oldPCs, newPCs);
         myConsumedList = new ArrayList<>();
         myProducedNewList = new ArrayList<>();
-        addToList(myConsumedList, diff$._1());
-        addToList(myProducedNewList, diff$._2());
-        addToList(myProducedNewList, _PCs$);
+        addToList(myConsumedList, "- ", diff$._1());
+        addToList(myProducedNewList, "+ ", diff$._2());
+        addToList(myProducedNewList, "+ ", _PCs$);
         mySelected = false;
     }
 
