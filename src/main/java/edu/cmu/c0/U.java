@@ -1,14 +1,23 @@
 package edu.cmu.c0;
 
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.markup.EffectType;
+import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.Font;
 import java.util.Arrays;
 
 public class U {
     public static final int LAYER_CONDITIONAL = 5432;
     public static final int LAYER_ERROR = 5678;
+    public static final TextAttributes BAD = new TextAttributes(JBColor.BLACK,
+            JBColor.PINK,
+            JBColor.PINK,
+            EffectType.BOXED,
+            Font.BOLD);
 
     // VIPER/SILICON HAS 1-INDEX LINE COLUMN NUMBERS, BUT INTELLIJ HAS 0-INDEX LINE NUMBERS!!!
     // Silver expressions should always have a TranslatedPosition, but inserted statements
@@ -19,7 +28,10 @@ public class U {
 
     // sets the value at arbitrary index of array, replacing the array with
     // a bigger array if necessary
-    public static void grow(String[][] array, int row, int column, String e) {
+    public static void grow(@NotNull String[][] array,
+                            int row,
+                            int column,
+                            @NotNull String e) {
         if (column >= array[row].length) {
             final var oldArray = array[row];
             array[row] = Arrays.copyOf(oldArray, column + 1);

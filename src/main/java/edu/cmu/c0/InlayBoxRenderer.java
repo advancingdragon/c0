@@ -8,6 +8,7 @@ import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 import scala.collection.JavaConverters;
 import scala.collection.Seq;
+import scala.collection.Seq$;
 import scala.collection.immutable.ListSet;
 import viper.silicon.interfaces.state.Chunk;
 import viper.silicon.logger.SymbExLogger;
@@ -19,12 +20,13 @@ import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 
 public class InlayBoxRenderer implements EditorCustomElementRenderer {
-    public static final int MAX_LINE_LENGTH = 80;
+    public static final int MAX_LINE_LENGTH = 120;
     public static final JBColor BG_CONSUMED_COLOR = new JBColor(0xFFECFF, 0xFFECFF);
     public static final JBColor BG_MAIN_COLOR = new JBColor(0xECFFFF, 0xECFFFF);
     public static final JBColor CONSUMED_COLOR = new JBColor(0x800060, 0x800060);
     public static final JBColor MAIN_COLOR = new JBColor(0x0000C0, 0x0000C0);
 
+    private final String myLabel;
     private final State myState;
     private final ListSet<Term> myNewPCs;
     private final ArrayList<StringBuilder> myConsumedList;
@@ -43,8 +45,12 @@ public class InlayBoxRenderer implements EditorCustomElementRenderer {
         }
     }
 
-    public InlayBoxRenderer(Seq<Chunk> oldChunks, ListSet<Term> oldPCs,
-                            State state, ListSet<Term> newPCs) {
+    public InlayBoxRenderer(@NotNull String label,
+                            @NotNull Seq<Chunk> oldChunks,
+                            @NotNull ListSet<Term> oldPCs,
+                            @NotNull State state,
+                            @NotNull ListSet<Term> newPCs) {
+        myLabel = label;
         myState = state;
         myNewPCs = newPCs;
         final var newChunks = state.h().values().toSeq();
@@ -54,6 +60,8 @@ public class InlayBoxRenderer implements EditorCustomElementRenderer {
         myConsumedList = new ArrayList<>();
         myProducedNewList = new ArrayList<>();
         addToList(myConsumedList, "- ", diff$._1());
+        // list of produced chunks and new PCs should have at least one line
+        myProducedNewList.add(new StringBuilder("+ "));
         addToList(myProducedNewList, "+ ", diff$._2());
         addToList(myProducedNewList, "+ ", _PCs$);
         mySelected = false;
@@ -85,20 +93,31 @@ public class InlayBoxRenderer implements EditorCustomElementRenderer {
 
     @Override
     public int calcHeightInPixels(@NotNull Inlay inlay) {
-        return (myConsumedList.size() + myProducedNewList.size()) * inlay.getEditor().getLineHeight();
+        final var lines = (!myLabel.equals("") ? 1 : 0) +
+                myConsumedList.size() +
+                myProducedNewList.size();
+        return lines * inlay.getEditor().getLineHeight();
     }
 
     @Override
     public void paint(@NotNull Inlay inlay, @NotNull Graphics2D g,
                       @NotNull Rectangle2D r, @NotNull TextAttributes t) {
         final var editor = inlay.getEditor();
+        final var width = (int) r.getWidth();
         var y = ((int) r.getY()) + editor.getAscent();
-        final var f = editor.getColorsScheme().getFont(EditorFontType.BOLD_ITALIC);
-        final var fontMetrics = editor.getComponent().getFontMetrics(f);
-        final var width = fontMetrics.stringWidth(" ".repeat(MAX_LINE_LENGTH));
-        g.setFont(f);
+        g.setFont(editor.getColorsScheme().getFont(EditorFontType.BOLD_ITALIC));
+
+        if (!myLabel.equals("")) {
+            g.setColor(JBColor.BLACK);
+            g.fillRect((int) r.getX(), (int) r.getY(), width, editor.getLineHeight());
+            g.setColor(JBColor.WHITE);
+            g.drawString(myLabel, (int) r.getX(), y);
+            y += editor.getLineHeight();
+        }
+
+        final var consumedY = y - editor.getAscent();
         g.setColor(mySelected ? CONSUMED_COLOR : BG_CONSUMED_COLOR);
-        g.fillRect((int) r.getX(), (int) r.getY(), width, myConsumedList.size() * editor.getLineHeight());
+        g.fillRect((int) r.getX(), consumedY, width, myConsumedList.size() * editor.getLineHeight());
 
         g.setColor(mySelected ? BG_CONSUMED_COLOR : CONSUMED_COLOR);
         for (final var stringBuilder : myConsumedList) {
@@ -116,5 +135,9 @@ public class InlayBoxRenderer implements EditorCustomElementRenderer {
             g.drawString(stringBuilder.toString(), (int) r.getX(), y);
             y += editor.getLineHeight();
         }
+
+        // frame the whole inlay
+        g.setColor(JBColor.BLACK);
+        g.drawRect((int) r.getX(), (int) r.getY(), width, (int) r.getHeight());
     }
 }

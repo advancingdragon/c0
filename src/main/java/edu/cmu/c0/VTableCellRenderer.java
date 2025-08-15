@@ -16,7 +16,10 @@ public class VTableCellRenderer extends JBList<String> implements TableCellRende
                                                    int column) {
         if (value instanceof String[] array) {
             setListData(array);
-            final var rowHeight = array.length > 0 ? array.length * 20 : 20;
+            // adjust row height based on font ascent
+            final var fontMetrics = table.getFontMetrics(table.getFont());
+            final var a = fontMetrics.getAscent() + 8;
+            final var rowHeight = array.length > 0 ? array.length * a : a;
             table.setRowHeight(row, rowHeight);
         }
         return this;

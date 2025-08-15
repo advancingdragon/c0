@@ -39,11 +39,11 @@ public class VTableModel extends AbstractTableModel {
         myNewPCs = (ListSet<Term>) ListSet$.MODULE$.empty();
     }
 
-    public void setState(State state) {
+    public void setState(@NotNull State state) {
         myState = state;
     }
 
-    public void setNewPCs(ListSet<Term> newPCs) {
+    public void setNewPCs(@NotNull ListSet<Term> newPCs) {
         myNewPCs = newPCs;
     }
 

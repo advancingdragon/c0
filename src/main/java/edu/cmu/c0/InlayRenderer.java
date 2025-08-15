@@ -14,7 +14,7 @@ public class InlayRenderer implements EditorCustomElementRenderer {
     private final JBColor myColor;
     private final String myLabel;
 
-    public InlayRenderer(JBColor color, String label) {
+    public InlayRenderer(@NotNull JBColor color, @NotNull String label) {
         myColor = color;
         myLabel = label;
     }
