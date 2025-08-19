@@ -5,7 +5,10 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.markup.HighlighterTargetArea;
+import com.intellij.openapi.fileEditor.OpenFileDescriptor;
+import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx;
 import com.intellij.openapi.project.DumbAwareAction;
+import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 
@@ -17,6 +20,7 @@ import viper.silver.ast.TranslatedPosition;
 
 import scala.collection.JavaConverters;
 
+import javax.swing.JSplitPane;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,10 +32,28 @@ public class ActionVerify extends DumbAwareAction {
     public void actionPerformed(@NotNull AnActionEvent event) {
         final var editor = event.getData(CommonDataKeys.EDITOR);
         if (editor == null) { return; }
-        // reset before doing anything else
-        U.reset(editor);
+        final var project = event.getData(CommonDataKeys.PROJECT);
+        if (project == null) { return; }
+        // if split window with LightVirtualFile is not open, split window and
+        // open temporary LightVirtualFile
+        final var managerEx = FileEditorManagerEx.getInstanceEx(project);
+        if (managerEx.getWindowSplitCount() > 1) {
+            managerEx.unsplitWindow();
+            for (final var file : managerEx.getOpenFiles()) {
+                // don't accidentally close a real file named _.c0
+                if (file instanceof LightVirtualFile && file.getName().equals("_.c0")) {
+                    managerEx.closeFile(file);
+                    break;
+                }
+            }
+        }
+        managerEx.createSplitter(JSplitPane.HORIZONTAL_SPLIT, null);
         final var document = editor.getDocument();
         final var text = document.getText();
+        final var temp = new LightVirtualFile("_.c0", document.getImmutableCharSequence());
+        temp.setWritable(false);
+        final var newEditor = managerEx.openTextEditor(new OpenFileDescriptor(project, temp), false);
+        if (newEditor == null) { return; }
 
         // double check if this is actually thread-safe
         // all captured variables are read-only
@@ -40,8 +62,8 @@ public class ActionVerify extends DumbAwareAction {
             final Main.GVC0Result result = Main.verifyFromPlugin(text);
             ApplicationManager.getApplication().invokeLater(() -> {
                 // back in the Event Dispatch Thread (EDT) again
-                final var inlayModel = editor.getInlayModel();
-                final var markupModel = editor.getMarkupModel();
+                final var inlayModel = newEditor.getInlayModel();
+                final var markupModel = newEditor.getMarkupModel();
 
                 if (result instanceof Main.GVC0ParserError parserError) {
                     final var i = parserError.failure().index();
@@ -82,8 +104,8 @@ public class ActionVerify extends DumbAwareAction {
                 // addEditorMouseListener takes a 2nd argument with a parentDisposable
                 // object, the dummy inlay. When the parentDisposable is disposed of
                 // the controller is removed as well
-                editor.addEditorMouseListener(controller, dummy);
-                controller.renderMethods(editor);
+                newEditor.addEditorMouseListener(controller, dummy);
+                controller.renderMethods(newEditor);
             });
         });
     }

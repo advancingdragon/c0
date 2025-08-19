@@ -20,7 +20,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 
 public class InlayBoxRenderer implements EditorCustomElementRenderer {
-    public static final int MAX_LINE_LENGTH = 120;
+    public static final int MAX_LINE_LENGTH = 80;
     public static final JBColor BG_CONSUMED_COLOR = new JBColor(0xFFECFF, 0xFFECFF);
     public static final JBColor BG_MAIN_COLOR = new JBColor(0xECFFFF, 0xECFFFF);
     public static final JBColor CONSUMED_COLOR = new JBColor(0x800060, 0x800060);
