@@ -43,8 +43,7 @@
         <lang.syntaxHighlighterFactory
             language="C0"
             implementationClass="edu.cmu.c0.C0SyntaxHighlighterFactory" />
-        <!-- The ToolWindow could be on either on the right or bottom, not sure which is best -->
-        <toolWindow anchor="right" factoryClass="edu.cmu.c0.VToolWindowFactory" id="View State" />
+        <toolWindow anchor="bottom" factoryClass="edu.cmu.c0.VToolWindowFactory" id="View State" />
     </extensions>
     <actions>
         <action class="edu.cmu.c0.ActionReset" id="edu.cmu.c0.ActionReset" text="Reset Verification">
