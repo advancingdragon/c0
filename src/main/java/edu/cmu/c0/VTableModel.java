@@ -13,7 +13,7 @@ import javax.swing.table.AbstractTableModel;
 import java.util.ArrayList;
 
 public class VTableModel extends AbstractTableModel {
-    public static final int MAX_LINE_LENGTH = 120;
+    public static final int MAX_LINE_LENGTH = 80;
     private static VTableModel SINGLETON_INSTANCE = null;
     @NotNull
     private State myState;

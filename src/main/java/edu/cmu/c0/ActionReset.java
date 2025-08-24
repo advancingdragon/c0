@@ -3,6 +3,7 @@ package edu.cmu.c0;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.fileEditor.impl.EditorWindow;
 import com.intellij.openapi.project.DumbAwareAction;
 import org.jetbrains.annotations.NotNull;
 
@@ -12,9 +13,12 @@ public class ActionReset extends DumbAwareAction {
     @Override
     public void actionPerformed(@NotNull AnActionEvent event) {
         final var editor = event.getData(CommonDataKeys.EDITOR);
-        if (editor != null) {
-            U.reset(editor);
-        }
+        if (editor == null) { return; }
+        final var project = event.getData(CommonDataKeys.PROJECT);
+        if (project == null) { return; }
+        final var window = event.getData(EditorWindow.DATA_KEY);
+        if (window == null) { return; }
+        U.resetAndUnsplit(editor, project, window);
     }
 
     @Override
