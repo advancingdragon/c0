@@ -13,7 +13,6 @@ import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.ui.JBColor;
 import gvc.Main;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import scala.collection.JavaConverters;
 import viper.silicon.logger.SymbExLogger;
 import viper.silicon.logger.SymbLog;

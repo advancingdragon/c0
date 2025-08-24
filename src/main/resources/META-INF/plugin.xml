@@ -54,9 +54,9 @@
             <add-to-group anchor="last" group-id="BuildMenu" />
             <keyboard-shortcut first-keystroke="control alt V" keymap="$default" />
         </action>
-        <action class="edu.cmu.c0.ActionVerifyInline" id="edu.cmu.c0.ActionVerifyInline" text="Verify Inline">
+        <action class="edu.cmu.c0.ActionVerifyInline" id="edu.cmu.c0.ActionVerifyInline" text="Verify File Inline">
             <add-to-group anchor="last" group-id="BuildMenu" />
-            <keyboard-shortcut first-keystroke="control alt B" keymap="$default" />
+            <keyboard-shortcut first-keystroke="control alt I" keymap="$default" />
         </action>
     </actions>
 </idea-plugin>
