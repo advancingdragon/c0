@@ -93,7 +93,7 @@ public class InlayBoxRenderer implements EditorCustomElementRenderer {
 
     @Override
     public int calcHeightInPixels(@NotNull Inlay inlay) {
-        final var lines = (!myLabel.equals("") ? 1 : 0) +
+        final var lines = (!myLabel.isEmpty() ? 1 : 0) +
                 myConsumedList.size() +
                 myProducedNewList.size();
         return lines * inlay.getEditor().getLineHeight();
@@ -107,7 +107,7 @@ public class InlayBoxRenderer implements EditorCustomElementRenderer {
         var y = ((int) r.getY()) + editor.getAscent();
         g.setFont(editor.getColorsScheme().getFont(EditorFontType.BOLD_ITALIC));
 
-        if (!myLabel.equals("")) {
+        if (!myLabel.isEmpty()) {
             g.setColor(JBColor.BLACK);
             g.fillRect((int) r.getX(), (int) r.getY(), width, editor.getLineHeight());
             g.setColor(JBColor.WHITE);
