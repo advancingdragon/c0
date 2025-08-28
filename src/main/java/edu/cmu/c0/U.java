@@ -42,7 +42,7 @@ public class U {
 
     // sets the value at arbitrary index of array, replacing the array with
     // a bigger array if necessary
-    public static void grow(@NotNull String[][] array,
+    public static void grow(@NotNull String[] @NotNull [] array,
                             int row,
                             int column,
                             @NotNull String e) {

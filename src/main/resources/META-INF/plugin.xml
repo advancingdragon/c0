@@ -43,6 +43,7 @@
         <lang.syntaxHighlighterFactory
             language="C0"
             implementationClass="edu.cmu.c0.C0SyntaxHighlighterFactory" />
+        <toolWindow anchor="right" factoryClass="edu.cmu.c0.TutorialWindowFactory" id="Tutorial" />
         <toolWindow anchor="bottom" factoryClass="edu.cmu.c0.VToolWindowFactory" id="View State" />
     </extensions>
     <actions>
