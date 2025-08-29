@@ -39,6 +39,7 @@ public class Method {
     private final TranslatedPosition myPos;
     private final List<Path> myPaths;
     private int myPathNumber;
+    private int mySelectedLine;
 
     public Method(Seq<SymbolicRecord> records, TranslatedPosition pos) {
         myLog = records;
@@ -46,12 +47,19 @@ public class Method {
         myPaths = new ArrayList<>();
         traverse(myLog, false, new HashMap<>(), new HashSet<>());
         myPathNumber = 0;
+        mySelectedLine = U.toIJ(pos.line());
     }
 
     public List<Path> getPaths() { return myPaths; }
     public int getPathNumber() { return myPathNumber; }
-    public void togglePathNumber() {
-        myPathNumber = (myPathNumber + 1) % myPaths.size();
+    public void setPathNumber(int pathNumber) {
+        if (0 <= pathNumber && pathNumber < myPaths.size()) {
+            myPathNumber = pathNumber;
+        }
+    }
+
+    public void setSelectedLine(int selectedLine) {
+        mySelectedLine = selectedLine;
     }
 
     public void traverse(Seq<SymbolicRecord> records,
@@ -148,7 +156,10 @@ public class Method {
                         x.value().pos() instanceof TranslatedPosition pos -> {
                     final var offset = document.getLineStartOffset(U.toIJ(pos.line()));
                     final var renderer = new InlayBoxRenderer("", oldChunks, oldPCs, x.state(), x.pcs());
-                    inlayModel.addBlockElement(offset, false, true, 1, renderer);
+                    // inefficient, but must always allocate InlayBoxRenderer in order to populateSnaps
+                    if (U.toIJ(pos.line()) == mySelectedLine) {
+                        inlayModel.addBlockElement(offset, false, true, 1, renderer);
+                    }
                     oldChunks = x.state().h().values().toSeq();
                     oldPCs = x.pcs();
                 }

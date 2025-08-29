@@ -42,6 +42,7 @@ public class Controller implements EditorMouseListener {
     public void mouseClicked(@NotNull EditorMouseEvent event) {
         final var editor = event.getEditor();
         final var inlay = event.getInlay();
+        /*
         if (event.getArea() == EditorMouseEventArea.EDITING_AREA &&
                 inlay != null &&
                 inlay.getRenderer() instanceof InlayBoxRenderer boxRenderer) {
@@ -58,7 +59,9 @@ public class Controller implements EditorMouseListener {
             return;
         }
 
-        if (event.getArea() != EditorMouseEventArea.ANNOTATIONS_AREA) {
+         */
+
+        if (event.getArea() != EditorMouseEventArea.ANNOTATIONS_AREA && event.getArea() != EditorMouseEventArea.EDITING_AREA) {
             return;
         }
 
@@ -78,7 +81,23 @@ public class Controller implements EditorMouseListener {
                 final var startLine = U.toIJ(pos.line());
                 final var endLine = U.toIJ(pos.end().get().line());
                 if (startLine <= lineClicked && lineClicked <= endLine) {
-                    myMethods.get(symbLog).togglePathNumber();
+                    if (event.getArea() == EditorMouseEventArea.ANNOTATIONS_AREA) {
+                        // only supports fixed font size for now
+                        // only supports files up to 999 lines long for now
+                        var x = event.getMouseEvent().getX();
+                        final var lineCount = editor.getDocument().getLineCount();
+                        if (lineCount < 10) {
+                            x -= 16;
+                        } else if (lineCount < 100) {
+                            x -= 24;
+                        } else {
+                            x -= 32;
+                        }
+                        final var pathNumber = x / 8;
+                        myMethods.get(symbLog).setPathNumber(pathNumber);
+                    } else {
+                        myMethods.get(symbLog).setSelectedLine(lineClicked);
+                    }
                 }
             }
         }

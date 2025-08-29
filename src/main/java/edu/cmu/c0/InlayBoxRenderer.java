@@ -8,7 +8,6 @@ import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 import scala.collection.JavaConverters;
 import scala.collection.Seq;
-import scala.collection.Seq$;
 import scala.collection.immutable.ListSet;
 import viper.silicon.interfaces.state.Chunk;
 import viper.silicon.logger.SymbExLogger;
@@ -55,15 +54,15 @@ public class InlayBoxRenderer implements EditorCustomElementRenderer {
         myNewPCs = newPCs;
         final var newChunks = state.h().values().toSeq();
         SymbExLogger.populateSnaps(newChunks);
-        final var diff$ = SymbExLogger.formatChunksDiff(oldChunks, newChunks);
-        final var _PCs$ = SymbExLogger.formatPCs(oldPCs, newPCs);
+        final var diff$ = SymbExLogger.formatChunksDiff3(oldChunks, newChunks);
+        final var _PCsDiff$ = SymbExLogger.formatPCsDiff2(oldPCs, newPCs);
         myConsumedList = new ArrayList<>();
         myProducedNewList = new ArrayList<>();
         addToList(myConsumedList, "- ", diff$._1());
-        // list of produced chunks and new PCs should have at least one line
-        myProducedNewList.add(new StringBuilder("+ "));
-        addToList(myProducedNewList, "+ ", diff$._2());
-        addToList(myProducedNewList, "+ ", _PCs$);
+        addToList(myProducedNewList, "  ", diff$._2()); // extant chunks
+        addToList(myProducedNewList, "  ", _PCsDiff$._1()); // extant PCs
+        addToList(myProducedNewList, "+ ", diff$._3()); // produced chunks
+        addToList(myProducedNewList, "+ ", _PCsDiff$._2()); // new PCs
         mySelected = false;
     }
 
