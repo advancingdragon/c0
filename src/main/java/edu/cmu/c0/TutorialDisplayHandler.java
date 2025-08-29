@@ -13,7 +13,6 @@ import org.cef.handler.CefDisplayHandlerAdapter;
 public class TutorialDisplayHandler extends CefDisplayHandlerAdapter {
     @Override
     public void onAddressChange(CefBrowser browser, CefFrame frame, String url) {
-        System.out.println(url);
         final var projects = ProjectManager.getInstance().getOpenProjects();
         for (final var project : projects) {
             // comments say to check if project isDisposed()
