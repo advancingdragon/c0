@@ -61,6 +61,8 @@ public class InlayBoxRenderer implements EditorCustomElementRenderer {
         addToList(myConsumedList, "- ", diff$._1());
         addToList(myProducedNewList, "  ", diff$._2()); // extant chunks
         addToList(myProducedNewList, "  ", _PCsDiff$._1()); // extant PCs
+        // separate extant and produced chunks / new PCs
+        myProducedNewList.add(new StringBuilder("+ "));
         addToList(myProducedNewList, "+ ", diff$._3()); // produced chunks
         addToList(myProducedNewList, "+ ", _PCsDiff$._2()); // new PCs
         mySelected = false;
