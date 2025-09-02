@@ -37,12 +37,14 @@ public class Method {
 
     private final Seq<SymbolicRecord> myLog;
     private final TranslatedPosition myPos;
+    private final int myLongest;
     private final List<Path> myPaths;
     private int myPathNumber;
 
-    public Method(Seq<SymbolicRecord> records, TranslatedPosition pos) {
+    public Method(Seq<SymbolicRecord> records, TranslatedPosition pos, int longest) {
         myLog = records;
         myPos = pos;
+        myLongest = longest;
         myPaths = new ArrayList<>();
         traverse(myLog, false, new HashMap<>(), new HashSet<>());
         myPathNumber = 0;
@@ -125,7 +127,7 @@ public class Method {
                 }
                 case EndRecord e -> {
                     final var offset = document.getLineStartOffset(U.toIJ(myPos.end().get().line()));
-                    final var renderer = new InlayBoxRenderer("end", oldChunks, oldPCs, e.state(), e.pcs());
+                    final var renderer = new InlayBoxRenderer("end", myLongest, oldChunks, oldPCs, e.state(), e.pcs());
                     inlayModel.addBlockElement(offset, false, false, 1, renderer);
                 }
                 case ErrorRecord r &&
@@ -141,13 +143,13 @@ public class Method {
                     // Need to display state right before error happened as well
                     // This state is displayed below the error since the state
                     // of the last executed statement is displayed above
-                    final var renderer = new InlayBoxRenderer("error", oldChunks, oldPCs, r.state(), r.pcs());
+                    final var renderer = new InlayBoxRenderer("error", myLongest, oldChunks, oldPCs, r.state(), r.pcs());
                     inlayModel.addBlockElement(offset0, false, false, 1, renderer);
                 }
                 case ExecuteRecord x &&
                         x.value().pos() instanceof TranslatedPosition pos -> {
                     final var offset = document.getLineStartOffset(U.toIJ(pos.line()));
-                    final var renderer = new InlayBoxRenderer("", oldChunks, oldPCs, x.state(), x.pcs());
+                    final var renderer = new InlayBoxRenderer("", myLongest, oldChunks, oldPCs, x.state(), x.pcs());
                     inlayModel.addBlockElement(offset, false, true, 1, renderer);
                     oldChunks = x.state().h().values().toSeq();
                     oldPCs = x.pcs();
@@ -155,13 +157,13 @@ public class Method {
                 case LoopExitRecord lex -> {
                     final var pos = (TranslatedPosition) SymbExLogger.whileLoops().get(lex.value()).get().pos();
                     final var offset = document.getLineStartOffset(U.toIJ(pos.end().get().line()));
-                    final var renderer = new InlayBoxRenderer("leaving loop", oldChunks, oldPCs, lex.state(), lex.pcs());
+                    final var renderer = new InlayBoxRenderer("leaving loop", myLongest, oldChunks, oldPCs, lex.state(), lex.pcs());
                     inlayModel.addBlockElement(offset, false, false, 1, renderer);
                 }
                 case LoopInRecord i -> {
                     final var pos = (TranslatedPosition) SymbExLogger.whileLoops().get(i.value()).get().pos();
                     final var offset = document.getLineStartOffset(U.toIJ(pos.line()));
-                    final var renderer = new InlayBoxRenderer("entering loop", oldChunks, oldPCs, i.state(), i.pcs());
+                    final var renderer = new InlayBoxRenderer("entering loop", myLongest, oldChunks, oldPCs, i.state(), i.pcs());
                     inlayModel.addBlockElement(offset, false, true, 1, renderer);
                     oldChunks = i.state().h().values().toSeq();
                     oldPCs = i.pcs();
@@ -169,7 +171,7 @@ public class Method {
                 case LoopOutRecord o -> {
                     final var pos = (TranslatedPosition) SymbExLogger.whileLoops().get(o.value()).get().pos();
                     final var offset = document.getLineStartOffset(U.toIJ(pos.end().get().line()));
-                    final var renderer = new InlayBoxRenderer("between iterations", oldChunks, oldPCs, o.state(), o.pcs());
+                    final var renderer = new InlayBoxRenderer("between iterations", myLongest, oldChunks, oldPCs, o.state(), o.pcs());
                     inlayModel.addBlockElement(offset, false, true, 1, renderer);
                     oldChunks = o.state().h().values().toSeq();
                     oldPCs = o.pcs();

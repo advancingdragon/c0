@@ -27,6 +27,7 @@ public class InlayBoxRenderer implements EditorCustomElementRenderer {
     public static final JBColor MAIN_COLOR = new JBColor(0x0000C0, 0x0000C0);
 
     private final String myLabel;
+    private final int myLongest;
     private final State myState;
     private final ListSet<Term> myNewPCs;
     private final ArrayList<StringBuilder> myConsumedList;
@@ -46,11 +47,13 @@ public class InlayBoxRenderer implements EditorCustomElementRenderer {
     }
 
     public InlayBoxRenderer(@NotNull String label,
+                            int longest,
                             @NotNull Seq<Chunk> oldChunks,
                             @NotNull ListSet<Term> oldPCs,
                             @NotNull State state,
                             @NotNull ListSet<Term> newPCs) {
         myLabel = label;
+        myLongest = longest;
         myState = state;
         myNewPCs = newPCs;
         final var newChunks = state.h().values().toSeq();
@@ -60,8 +63,6 @@ public class InlayBoxRenderer implements EditorCustomElementRenderer {
         myConsumedList = new ArrayList<>();
         myProducedNewList = new ArrayList<>();
         addToList(myConsumedList, "- ", diff$._1());
-        // list of produced chunks and new PCs should have at least one line
-        myProducedNewList.add(new StringBuilder("+ "));
         addToList(myProducedNewList, "+ ", diff$._2());
         addToList(myProducedNewList, "+ ", _PCs$);
         mySelected = false;
@@ -88,7 +89,7 @@ public class InlayBoxRenderer implements EditorCustomElementRenderer {
         final var editor = inlay.getEditor();
         final var f = editor.getColorsScheme().getFont(EditorFontType.BOLD_ITALIC);
         final var fontMetrics = editor.getComponent().getFontMetrics(f);
-        return fontMetrics.stringWidth(" ".repeat(MAX_LINE_LENGTH));
+        return fontMetrics.stringWidth(" ".repeat(myLongest + MAX_LINE_LENGTH));
     }
 
     @Override
@@ -103,41 +104,50 @@ public class InlayBoxRenderer implements EditorCustomElementRenderer {
     public void paint(@NotNull Inlay inlay, @NotNull Graphics2D g,
                       @NotNull Rectangle2D r, @NotNull TextAttributes t) {
         final var editor = inlay.getEditor();
-        final var width = (int) r.getWidth();
+        final var f = editor.getColorsScheme().getFont(EditorFontType.BOLD_ITALIC);
+        final var fontMetrics = editor.getComponent().getFontMetrics(f);
+        final var width = fontMetrics.stringWidth(" ".repeat(MAX_LINE_LENGTH));
+        final var x = ((int) r.getX()) + fontMetrics.stringWidth(" ".repeat(myLongest));
         var y = ((int) r.getY()) + editor.getAscent();
-        g.setFont(editor.getColorsScheme().getFont(EditorFontType.BOLD_ITALIC));
+        g.setFont(f);
 
         if (!myLabel.isEmpty()) {
             g.setColor(JBColor.BLACK);
-            g.fillRect((int) r.getX(), (int) r.getY(), width, editor.getLineHeight());
+            g.fillRect(x, (int) r.getY(), width, editor.getLineHeight());
             g.setColor(JBColor.WHITE);
-            g.drawString(myLabel, (int) r.getX(), y);
+            g.drawString(myLabel, x, y);
             y += editor.getLineHeight();
         }
 
         final var consumedY = y - editor.getAscent();
         g.setColor(mySelected ? CONSUMED_COLOR : BG_CONSUMED_COLOR);
-        g.fillRect((int) r.getX(), consumedY, width, myConsumedList.size() * editor.getLineHeight());
+        g.fillRect(x, consumedY, width, myConsumedList.size() * editor.getLineHeight());
 
         g.setColor(mySelected ? BG_CONSUMED_COLOR : CONSUMED_COLOR);
         for (final var stringBuilder : myConsumedList) {
-            g.drawString(stringBuilder.toString(), (int) r.getX(), y);
+            g.drawString(stringBuilder.toString(), x, y);
             y += editor.getLineHeight();
         }
 
         // the correct way to calculate the vertical position is y - ascent
         final var mainY = y - editor.getAscent();
         g.setColor(mySelected ? MAIN_COLOR : BG_MAIN_COLOR);
-        g.fillRect((int) r.getX(), mainY, width, myProducedNewList.size() * editor.getLineHeight());
+        g.fillRect(x, mainY, width, myProducedNewList.size() * editor.getLineHeight());
 
         g.setColor(mySelected ? BG_MAIN_COLOR : MAIN_COLOR);
         for (final var stringBuilder : myProducedNewList) {
-            g.drawString(stringBuilder.toString(), (int) r.getX(), y);
+            g.drawString(stringBuilder.toString(), x, y);
             y += editor.getLineHeight();
         }
 
         // frame the whole inlay
         g.setColor(JBColor.BLACK);
-        g.drawRect((int) r.getX(), (int) r.getY(), width, (int) r.getHeight());
+        g.drawRect(x, (int) r.getY(), width, (int) r.getHeight());
+
+        // draw line
+        final var document = editor.getDocument();
+        final var offset = inlay.getOffset();
+        final var lineLength = fontMetrics.stringWidth(" ".repeat(document.getLineEndOffset(document.getLineNumber(offset)) - offset));
+        g.drawLine(lineLength, y - editor.getAscent(), x, y -editor.getAscent());
     }
 }

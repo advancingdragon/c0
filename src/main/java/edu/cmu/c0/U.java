@@ -149,11 +149,20 @@ public class U {
 
                 final Map<SymbLog, Method> methods = new HashMap<>();
 
+                final var document = editor.getDocument();
                 for (final var symbLog : JavaConverters.seqAsJavaList(SymbExLogger.memberList())) {
                     if (SymbExLogger.m(symbLog) instanceof MethodRecord methodRecord &&
                             methodRecord.value().pos() instanceof TranslatedPosition pos) {
                         SymbExLogger.populateWhileLoops(methodRecord.value().bodyOrAssumeFalse().ss());
-                        final var method = new Method(symbLog.log(), pos);
+                        // find the longest line in method
+                        var longest = 0;
+                        for (var i = U.toIJ(pos.line()); i <= U.toIJ(pos.end().get().line()); i += 1) {
+                            var length = document.getLineEndOffset(i) - document.getLineStartOffset(i);
+                            if (longest < length) {
+                                longest = length;
+                            }
+                        }
+                        final var method = new Method(symbLog.log(), pos, longest);
                         methods.put(symbLog, method);
                     }
                 }
