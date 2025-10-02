@@ -8,9 +8,7 @@ import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 import scala.collection.JavaConverters;
 import scala.collection.Seq;
-import scala.collection.Seq$;
 import scala.collection.immutable.ListSet;
-import viper.silicon.interfaces.state.Chunk;
 import viper.silicon.logger.SymbExLogger;
 import viper.silicon.state.State;
 import viper.silicon.state.terms.Term;
@@ -30,8 +28,8 @@ public class InlayBoxRenderer implements EditorCustomElementRenderer {
     private final int myLongest;
     private final State myState;
     private final ListSet<Term> myNewPCs;
-    private final ArrayList<StringBuilder> myConsumedList;
-    private final ArrayList<StringBuilder> myProducedNewList;
+    private final ArrayList<StringBuilder> myHeap;
+    private final ArrayList<StringBuilder> myPCs;
     private boolean mySelected;
 
     private void addToList(ArrayList<StringBuilder> list, String prefix, Seq<String> strings) {
@@ -48,9 +46,8 @@ public class InlayBoxRenderer implements EditorCustomElementRenderer {
 
     public InlayBoxRenderer(@NotNull String label,
                             int longest,
-                            @NotNull Seq<Chunk> oldChunks,
-                            @NotNull ListSet<Term> oldPCs,
                             @NotNull State state,
+                            @NotNull ListSet<Term> oldPCs,
                             @NotNull ListSet<Term> newPCs) {
         myLabel = label;
         myLongest = longest;
@@ -58,13 +55,18 @@ public class InlayBoxRenderer implements EditorCustomElementRenderer {
         myNewPCs = newPCs;
         final var newChunks = state.h().values().toSeq();
         SymbExLogger.populateSnaps(newChunks);
-        final var diff$ = SymbExLogger.formatChunksDiff(oldChunks, newChunks);
+        final var fieldAndPredicateChunks = SymbExLogger.partitionChunks(newChunks);
+        final var fieldChunksWithSnap = SymbExLogger.filterFieldChunksWithSnap(fieldAndPredicateChunks._1());
+        final var fieldChunks$ = SymbExLogger.formatChunksUniqueHack(fieldAndPredicateChunks._1());
+        final var fieldChunksWithSnap$ = SymbExLogger.formatFieldChunksWithSnap(fieldChunksWithSnap);
+        final var resourceChunks$ = SymbExLogger.formatChunks(fieldAndPredicateChunks._2());
         final var _PCs$ = SymbExLogger.formatPCs(oldPCs, newPCs);
-        myConsumedList = new ArrayList<>();
-        myProducedNewList = new ArrayList<>();
-        addToList(myConsumedList, "- ", diff$._1());
-        addToList(myProducedNewList, "+ ", diff$._2());
-        addToList(myProducedNewList, "+ ", _PCs$);
+        myHeap = new ArrayList<>();
+        myPCs = new ArrayList<>();
+        addToList(myHeap, "", fieldChunks$);
+        addToList(myHeap, "", fieldChunksWithSnap$);
+        addToList(myHeap, "", resourceChunks$);
+        addToList(myPCs, "+ ", _PCs$);
         mySelected = false;
     }
 
@@ -89,14 +91,13 @@ public class InlayBoxRenderer implements EditorCustomElementRenderer {
         final var editor = inlay.getEditor();
         final var f = editor.getColorsScheme().getFont(EditorFontType.BOLD_ITALIC);
         final var fontMetrics = editor.getComponent().getFontMetrics(f);
-        return fontMetrics.stringWidth(" ".repeat(myLongest + MAX_LINE_LENGTH));
+        return fontMetrics.stringWidth(" ".repeat(myLongest + 2*MAX_LINE_LENGTH));
     }
 
     @Override
     public int calcHeightInPixels(@NotNull Inlay inlay) {
         final var lines = (!myLabel.isEmpty() ? 1 : 0) +
-                myConsumedList.size() +
-                myProducedNewList.size();
+                Math.max(myHeap.size(), myPCs.size());
         return lines * inlay.getEditor().getLineHeight();
     }
 
@@ -113,41 +114,41 @@ public class InlayBoxRenderer implements EditorCustomElementRenderer {
 
         if (!myLabel.isEmpty()) {
             g.setColor(JBColor.BLACK);
-            g.fillRect(x, (int) r.getY(), width, editor.getLineHeight());
+            g.fillRect(x, (int) r.getY(), 2*width, editor.getLineHeight());
             g.setColor(JBColor.WHITE);
             g.drawString(myLabel, x, y);
             y += editor.getLineHeight();
         }
 
-        final var consumedY = y - editor.getAscent();
+        final var heapAndPCsY = y - editor.getAscent();
         g.setColor(mySelected ? CONSUMED_COLOR : BG_CONSUMED_COLOR);
-        g.fillRect(x, consumedY, width, myConsumedList.size() * editor.getLineHeight());
+        g.fillRect(x, heapAndPCsY, width, Math.max(myHeap.size(), myPCs.size()) * editor.getLineHeight());
 
         g.setColor(mySelected ? BG_CONSUMED_COLOR : CONSUMED_COLOR);
-        for (final var stringBuilder : myConsumedList) {
+        for (final var stringBuilder : myHeap) {
             g.drawString(stringBuilder.toString(), x, y);
             y += editor.getLineHeight();
         }
 
-        // the correct way to calculate the vertical position is y - ascent
-        final var mainY = y - editor.getAscent();
+        // reset y to top
+        y = heapAndPCsY + editor.getAscent();
         g.setColor(mySelected ? MAIN_COLOR : BG_MAIN_COLOR);
-        g.fillRect(x, mainY, width, myProducedNewList.size() * editor.getLineHeight());
+        g.fillRect(x + width, heapAndPCsY, width, Math.max(myHeap.size(), myPCs.size()) * editor.getLineHeight());
 
         g.setColor(mySelected ? BG_MAIN_COLOR : MAIN_COLOR);
-        for (final var stringBuilder : myProducedNewList) {
-            g.drawString(stringBuilder.toString(), x, y);
+        for (final var stringBuilder : myPCs) {
+            g.drawString(stringBuilder.toString(), x + width, y);
             y += editor.getLineHeight();
         }
 
         // frame the whole inlay
         g.setColor(JBColor.BLACK);
-        g.drawRect(x, (int) r.getY(), width, (int) r.getHeight());
+        g.drawRect(x, (int) r.getY(), 2*width, (int) r.getHeight());
 
         // draw line
         final var document = editor.getDocument();
         final var offset = inlay.getOffset();
         final var lineLength = fontMetrics.stringWidth(" ".repeat(document.getLineEndOffset(document.getLineNumber(offset)) - offset));
-        g.drawLine(lineLength, y - editor.getAscent(), x, y -editor.getAscent());
+        g.drawLine(lineLength, (int) r.getY() + (int) r.getHeight(), x, (int) r.getY() + (int) r.getHeight());
     }
 }
