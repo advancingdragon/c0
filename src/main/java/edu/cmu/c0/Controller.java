@@ -53,7 +53,7 @@ public class Controller implements EditorMouseListener {
             // if symbolic state inlay clicked, update tool window
             final var instance = VTableModel.getInstance();
             instance.setState(boxRenderer.getState());
-            instance.setNewPCs(boxRenderer.getNewPCs());
+            instance.setPCs(boxRenderer.getPCs());
             instance.fireTableDataChanged();
             return;
         }

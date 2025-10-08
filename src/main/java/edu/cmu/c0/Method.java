@@ -8,13 +8,10 @@ import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 import scala.collection.JavaConverters;
 import scala.collection.Seq;
-import scala.collection.immutable.ListSet;
-import scala.collection.immutable.ListSet$;
 import viper.silicon.logger.SymbExLogger;
 import viper.silicon.logger.records.SymbolicRecord;
 import viper.silicon.logger.records.data.*;
 import viper.silicon.logger.records.structural.BranchingRecord;
-import viper.silicon.state.terms.Term;
 import viper.silver.ast.Not;
 import viper.silver.ast.TranslatedPosition;
 
@@ -93,7 +90,6 @@ public class Method {
     }
 
     public void renderInlays(Seq<SymbolicRecord> records,
-                             ListSet<Term> oldPCs,
                              @NotNull Editor editor) {
         final var document = editor.getDocument();
         final var inlayModel = editor.getInlayModel();
@@ -103,9 +99,9 @@ public class Method {
                 case BranchingRecord b &&
                         myPaths.get(myPathNumber).forks.containsKey(b) -> {
                     if (myPaths.get(myPathNumber).forks.get(b)) {
-                        renderInlays(b.getBranches().apply(0), oldPCs, editor);
+                        renderInlays(b.getBranches().apply(0), editor);
                     } else {
-                        renderInlays(b.getBranches().apply(1), oldPCs, editor);
+                        renderInlays(b.getBranches().apply(1), editor);
                     }
                 }
                 case ConditionalEdgeRecord c &&
@@ -124,7 +120,7 @@ public class Method {
                 }
                 case EndRecord e -> {
                     final var offset = document.getLineStartOffset(U.toIJ(myPos.end().get().line()));
-                    final var renderer = new InlayBoxRenderer("end", myLongest, e.state(), oldPCs, e.pcs());
+                    final var renderer = new InlayBoxRenderer("end", myLongest, e.state(), e.pcs());
                     inlayModel.addBlockElement(offset, false, false, 1, renderer);
                 }
                 case ErrorRecord r &&
@@ -140,29 +136,26 @@ public class Method {
                     // Need to display state right before error happened as well
                     // This state is displayed below the error since the state
                     // of the last executed statement is displayed above
-                    final var renderer = new InlayBoxRenderer("error", myLongest, r.state(), oldPCs, r.pcs());
+                    final var renderer = new InlayBoxRenderer("error", myLongest, r.state(), r.pcs());
                     inlayModel.addBlockElement(offset0, false, false, 1, renderer);
                 }
                 case ExecuteRecord x &&
                         x.value().pos() instanceof TranslatedPosition pos -> {
                     final var offset = document.getLineStartOffset(U.toIJ(pos.line()));
-                    final var renderer = new InlayBoxRenderer("", myLongest, x.state(), oldPCs, x.pcs());
+                    final var renderer = new InlayBoxRenderer("", myLongest, x.state(), x.pcs());
                     inlayModel.addBlockElement(offset, false, true, 1, renderer);
-                    oldPCs = x.pcs();
                 }
                 case LoopInRecord i -> {
                     final var pos = (TranslatedPosition) SymbExLogger.whileLoops().get(i.value()).get().pos();
                     final var offset = document.getLineStartOffset(U.toIJ(pos.line()));
-                    final var renderer = new InlayBoxRenderer("entering loop", myLongest, i.state(), oldPCs, i.pcs());
+                    final var renderer = new InlayBoxRenderer("entering loop", myLongest, i.state(), i.pcs());
                     inlayModel.addBlockElement(offset, false, true, 1, renderer);
-                    oldPCs = i.pcs();
                 }
                 case LoopOutRecord o -> {
                     final var pos = (TranslatedPosition) SymbExLogger.whileLoops().get(o.value()).get().pos();
                     final var offset = document.getLineStartOffset(U.toIJ(pos.end().get().line()));
-                    final var renderer = new InlayBoxRenderer("between iterations", myLongest, o.state(), oldPCs, o.pcs());
+                    final var renderer = new InlayBoxRenderer("between iterations", myLongest, o.state(), o.pcs());
                     inlayModel.addBlockElement(offset, false, true, 1, renderer);
-                    oldPCs = o.pcs();
                 }
                 default -> { }
             }
@@ -170,8 +163,6 @@ public class Method {
     }
 
     public void renderInlays(@NotNull Editor editor) {
-        renderInlays(myLog,
-                (ListSet<Term>) ListSet$.MODULE$.empty(),
-                editor);
+        renderInlays(myLog, editor);
     }
 }

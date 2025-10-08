@@ -27,19 +27,19 @@ public class InlayBoxRenderer implements EditorCustomElementRenderer {
     private final String myLabel;
     private final int myLongest;
     private final State myState;
-    private final ListSet<Term> myNewPCs;
-    private final ArrayList<StringBuilder> myHeap;
-    private final ArrayList<StringBuilder> myPCs;
+    private final ListSet<Term> myPCs;
+    private final ArrayList<StringBuilder> myHeapList;
+    private final ArrayList<StringBuilder> myPCsList;
     private boolean mySelected;
 
-    private void addToList(ArrayList<StringBuilder> list, String prefix, Seq<String> strings) {
+    private void addToList(ArrayList<StringBuilder> list, Seq<String> strings) {
         for (final var string : JavaConverters.asJavaIterable(strings)) {
             if (list.isEmpty()) {
-                list.add(new StringBuilder(prefix + string));
+                list.add(new StringBuilder(string));
             } else if (list.get(list.size() - 1).length() + string.length() < MAX_LINE_LENGTH) {
                 list.get(list.size() - 1).append(string);
             } else {
-                list.add(new StringBuilder(prefix + string));
+                list.add(new StringBuilder(string));
             }
         }
     }
@@ -47,26 +47,24 @@ public class InlayBoxRenderer implements EditorCustomElementRenderer {
     public InlayBoxRenderer(@NotNull String label,
                             int longest,
                             @NotNull State state,
-                            @NotNull ListSet<Term> oldPCs,
-                            @NotNull ListSet<Term> newPCs) {
+                            @NotNull ListSet<Term> thePCs) {
         myLabel = label;
         myLongest = longest;
         myState = state;
-        myNewPCs = newPCs;
-        final var newChunks = state.h().values().toSeq();
-        SymbExLogger.populateSnaps(newChunks);
-        final var fieldAndPredicateChunks = SymbExLogger.partitionChunks(newChunks);
+        myPCs = thePCs;
+        final var chunks = state.h().values().toSeq();
+        final var fieldAndPredicateChunks = SymbExLogger.partitionChunks(chunks);
         final var fieldChunksWithSnap = SymbExLogger.filterFieldChunksWithSnap(fieldAndPredicateChunks._1());
-        final var fieldChunks$ = SymbExLogger.formatChunksUniqueHack(fieldAndPredicateChunks._1());
-        final var fieldChunksWithSnap$ = SymbExLogger.formatFieldChunksWithSnap(fieldChunksWithSnap);
-        final var resourceChunks$ = SymbExLogger.formatChunks(fieldAndPredicateChunks._2());
-        final var _PCs$ = SymbExLogger.formatPCs(oldPCs, newPCs);
-        myHeap = new ArrayList<>();
-        myPCs = new ArrayList<>();
-        addToList(myHeap, "", fieldChunks$);
-        addToList(myHeap, "", fieldChunksWithSnap$);
-        addToList(myHeap, "", resourceChunks$);
-        addToList(myPCs, "+ ", _PCs$);
+        final var fieldChunks$ = SymbExLogger.formatChunksUniqueHack(fieldAndPredicateChunks._1(), state.g(), state.h());
+        final var fieldChunksWithSnap$ = SymbExLogger.formatFieldChunksWithSnap(fieldChunksWithSnap, state.g(), state.h());
+        final var resourceChunks$ = SymbExLogger.formatChunks(fieldAndPredicateChunks._2(), state.g(), state.h());
+        final var thePCs$ = SymbExLogger.formatPCs(thePCs, state.g(), state.h());
+        myHeapList = new ArrayList<>();
+        myPCsList = new ArrayList<>();
+        addToList(myHeapList, fieldChunks$);
+        addToList(myHeapList, fieldChunksWithSnap$);
+        addToList(myHeapList, resourceChunks$);
+        addToList(myPCsList, thePCs$);
         mySelected = false;
     }
 
@@ -74,8 +72,8 @@ public class InlayBoxRenderer implements EditorCustomElementRenderer {
         return myState;
     }
 
-    public ListSet<Term> getNewPCs() {
-        return myNewPCs;
+    public ListSet<Term> getPCs() {
+        return myPCs;
     }
 
     public void select() {
@@ -91,13 +89,13 @@ public class InlayBoxRenderer implements EditorCustomElementRenderer {
         final var editor = inlay.getEditor();
         final var f = editor.getColorsScheme().getFont(EditorFontType.BOLD_ITALIC);
         final var fontMetrics = editor.getComponent().getFontMetrics(f);
-        return fontMetrics.stringWidth(" ".repeat(myLongest + 2*MAX_LINE_LENGTH));
+        return fontMetrics.stringWidth(" ".repeat(myLongest + MAX_LINE_LENGTH));
     }
 
     @Override
     public int calcHeightInPixels(@NotNull Inlay inlay) {
         final var lines = (!myLabel.isEmpty() ? 1 : 0) +
-                Math.max(myHeap.size(), myPCs.size());
+                myHeapList.size() + myPCsList.size();
         return lines * inlay.getEditor().getLineHeight();
     }
 
@@ -114,36 +112,36 @@ public class InlayBoxRenderer implements EditorCustomElementRenderer {
 
         if (!myLabel.isEmpty()) {
             g.setColor(JBColor.BLACK);
-            g.fillRect(x, (int) r.getY(), 2*width, editor.getLineHeight());
+            g.fillRect(x, (int) r.getY(), width, editor.getLineHeight());
             g.setColor(JBColor.WHITE);
             g.drawString(myLabel, x, y);
             y += editor.getLineHeight();
         }
 
-        final var heapAndPCsY = y - editor.getAscent();
+        final var heapY = y - editor.getAscent();
         g.setColor(mySelected ? CONSUMED_COLOR : BG_CONSUMED_COLOR);
-        g.fillRect(x, heapAndPCsY, width, Math.max(myHeap.size(), myPCs.size()) * editor.getLineHeight());
+        g.fillRect(x, heapY, width, myHeapList.size() * editor.getLineHeight());
 
         g.setColor(mySelected ? BG_CONSUMED_COLOR : CONSUMED_COLOR);
-        for (final var stringBuilder : myHeap) {
+        for (final var stringBuilder : myHeapList) {
             g.drawString(stringBuilder.toString(), x, y);
             y += editor.getLineHeight();
         }
 
-        // reset y to top
-        y = heapAndPCsY + editor.getAscent();
+        // the correct way to calculate the vertical position is y - ascent
+        final var mainY = y - editor.getAscent();
         g.setColor(mySelected ? MAIN_COLOR : BG_MAIN_COLOR);
-        g.fillRect(x + width, heapAndPCsY, width, Math.max(myHeap.size(), myPCs.size()) * editor.getLineHeight());
+        g.fillRect(x, mainY, width, myPCsList.size() * editor.getLineHeight());
 
         g.setColor(mySelected ? BG_MAIN_COLOR : MAIN_COLOR);
-        for (final var stringBuilder : myPCs) {
-            g.drawString(stringBuilder.toString(), x + width, y);
+        for (final var stringBuilder : myPCsList) {
+            g.drawString(stringBuilder.toString(), x, y);
             y += editor.getLineHeight();
         }
 
         // frame the whole inlay
         g.setColor(JBColor.BLACK);
-        g.drawRect(x, (int) r.getY(), 2*width, (int) r.getHeight());
+        g.drawRect(x, (int) r.getY(), width, (int) r.getHeight());
 
         // draw line
         final var document = editor.getDocument();
