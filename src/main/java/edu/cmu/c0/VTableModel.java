@@ -18,7 +18,7 @@ public class VTableModel extends AbstractTableModel {
     @NotNull
     private State myState;
     @NotNull
-    private ListSet<Term> myNewPCs;
+    private ListSet<Term> myPCs;
 
     private static String[] toArray(Seq<String> seq) {
         // layout text in table
@@ -50,15 +50,15 @@ public class VTableModel extends AbstractTableModel {
 
     public void reset() {
         myState = State.empty();
-        myNewPCs = (ListSet<Term>) ListSet$.MODULE$.empty();
+        myPCs = (ListSet<Term>) ListSet$.MODULE$.empty();
     }
 
     public void setState(@NotNull State state) {
         myState = state;
     }
 
-    public void setNewPCs(@NotNull ListSet<Term> newPCs) {
-        myNewPCs = newPCs;
+    public void setPCs(@NotNull ListSet<Term> thePCs) {
+        myPCs = thePCs;
     }
 
     @Override
@@ -75,9 +75,9 @@ public class VTableModel extends AbstractTableModel {
     public Object getValueAt(int rowIndex, int columnIndex) {
         if (columnIndex == 1) {
             return switch (rowIndex) {
-                case 0 -> toArray(SymbExLogger.formatChunks(myState.h().values().toSeq()));
-                case 1 -> toArray(SymbExLogger.formatChunks(myState.optimisticHeap().values().toSeq()));
-                default -> toArray(SymbExLogger.formatPCs((ListSet<Term>) ListSet$.MODULE$.empty(), myNewPCs));
+                case 0 -> toArray(SymbExLogger.formatChunks(myState.h().values().toSeq(), myState.g(), myState.h()));
+                case 1 -> toArray(SymbExLogger.formatChunks(myState.optimisticHeap().values().toSeq(), myState.g(), myState.h()));
+                default -> toArray(SymbExLogger.formatPCs(myPCs, myState.g(), myState.h()));
             };
         } else {
             return switch (rowIndex) {
