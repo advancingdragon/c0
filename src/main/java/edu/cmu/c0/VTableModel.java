@@ -75,9 +75,9 @@ public class VTableModel extends AbstractTableModel {
     public Object getValueAt(int rowIndex, int columnIndex) {
         if (columnIndex == 1) {
             return switch (rowIndex) {
-                case 0 -> toArray(SymbExLogger.formatChunks(myState.h().values().toSeq(), myState.g(), myState.h()));
-                case 1 -> toArray(SymbExLogger.formatChunks(myState.optimisticHeap().values().toSeq(), myState.g(), myState.h()));
-                default -> toArray(SymbExLogger.formatPCs(myPCs, myState.g(), myState.h()));
+                case 0 -> toArray(SymbExLogger.formatChunks(myState.h().values().toSeq(), myState));
+                case 1 -> toArray(SymbExLogger.formatChunks(myState.optimisticHeap().values().toSeq(), myState));
+                default -> toArray(SymbExLogger.formatPCs(myPCs, myState));
             };
         } else {
             return switch (rowIndex) {

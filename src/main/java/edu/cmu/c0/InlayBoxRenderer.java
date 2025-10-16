@@ -55,10 +55,10 @@ public class InlayBoxRenderer implements EditorCustomElementRenderer {
         final var chunks = state.h().values().toSeq();
         final var fieldAndPredicateChunks = SymbExLogger.partitionChunks(chunks);
         final var fieldChunksWithSnap = SymbExLogger.filterFieldChunksWithSnap(fieldAndPredicateChunks._1());
-        final var fieldChunks$ = SymbExLogger.formatChunksUniqueHack(fieldAndPredicateChunks._1(), state.g(), state.h());
-        final var fieldChunksWithSnap$ = SymbExLogger.formatFieldChunksWithSnap(fieldChunksWithSnap, state.g(), state.h());
-        final var resourceChunks$ = SymbExLogger.formatChunks(fieldAndPredicateChunks._2(), state.g(), state.h());
-        final var thePCs$ = SymbExLogger.formatPCs(thePCs, state.g(), state.h());
+        final var fieldChunks$ = SymbExLogger.formatChunksUniqueHack(fieldAndPredicateChunks._1(), state);
+        final var fieldChunksWithSnap$ = SymbExLogger.formatFieldChunksWithSnap(fieldChunksWithSnap, state);
+        final var resourceChunks$ = SymbExLogger.formatChunks(fieldAndPredicateChunks._2(), state);
+        final var thePCs$ = SymbExLogger.formatPCs(thePCs, state);
         myHeapList = new ArrayList<>();
         myPCsList = new ArrayList<>();
         addToList(myHeapList, fieldChunks$);
