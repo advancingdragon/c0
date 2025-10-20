@@ -137,9 +137,15 @@ public class U {
                     return;
                 } else if (result instanceof Main.GVC0ValidatorError validatorError) {
                     for (final var error : JavaConverters.asJavaIterable(validatorError.errors())) {
-                        final var span = error.node().span();
-                        final var s = span.start().index();
-                        final var e = span.end().index();
+                        final int s;
+                        final int e;
+                        if (error.node() != null) {
+                            s = error.node().span().start().index();
+                            e = error.node().span().end().index();
+                        } else {
+                            s = 0;
+                            e = 0;
+                        }
                         markupModel.addRangeHighlighter(s, e, U.LAYER_ERROR, U.BAD, HighlighterTargetArea.EXACT_RANGE);
                         inlayModel.addAfterLineEndElement(e, false,
                                 new InlayRenderer(JBColor.RED, error.message()));
