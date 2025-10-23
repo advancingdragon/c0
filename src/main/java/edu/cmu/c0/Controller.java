@@ -1,6 +1,7 @@
 package edu.cmu.c0;
 
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.colors.EditorFontType;
 import com.intellij.openapi.editor.event.EditorMouseEvent;
 import com.intellij.openapi.editor.event.EditorMouseEventArea;
 import com.intellij.openapi.editor.event.EditorMouseListener;
@@ -78,7 +79,14 @@ public class Controller implements EditorMouseListener {
                 final var startLine = U.toIJ(pos.line());
                 final var endLine = U.toIJ(pos.end().get().line());
                 if (startLine <= lineClicked && lineClicked <= endLine) {
-                    myMethods.get(symbLog).togglePathNumber();
+                    // find out which path was clicked from the x coordinate
+                    final var f = editor.getColorsScheme().getFont(EditorFontType.BOLD_ITALIC);
+                    final var fontMetrics = editor.getComponent().getFontMetrics(f);
+                    final var singleCharWidth = fontMetrics.stringWidth(" ");
+                    final var lineCount = editor.getDocument().getLineCount();
+                    final var x = event.getMouseEvent().getX();
+                    final var pathNumber = x / singleCharWidth - (U.numberOfChars(lineCount) + 1);
+                    myMethods.get(symbLog).setPathNumber(pathNumber);
                 }
             }
         }

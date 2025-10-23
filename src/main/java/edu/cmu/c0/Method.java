@@ -47,8 +47,11 @@ public class Method {
 
     public List<Path> getPaths() { return myPaths; }
     public int getPathNumber() { return myPathNumber; }
-    public void togglePathNumber() {
-        myPathNumber = (myPathNumber + 1) % myPaths.size();
+
+    public void setPathNumber(int pathNumber) {
+        if (0 <= pathNumber && pathNumber < myPaths.size()) {
+            myPathNumber = pathNumber;
+        }
     }
 
     public void traverse(Seq<SymbolicRecord> records,

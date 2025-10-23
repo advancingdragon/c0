@@ -40,6 +40,15 @@ public class U {
         return viperLine - 1;
     }
 
+    public static int numberOfChars(int lineCount) {
+        var i = 0;
+        do {
+            lineCount /= 10;
+            i += 1;
+        } while (lineCount != 0);
+        return i;
+    }
+
     // sets the value at arbitrary index of array, replacing the array with
     // a bigger array if necessary
     public static void grow(@NotNull String[] @NotNull [] array,
