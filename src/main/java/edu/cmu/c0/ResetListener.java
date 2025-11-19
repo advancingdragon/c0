@@ -14,6 +14,9 @@ public class ResetListener implements CommandListener {
             return;
         }
         final var name = event.getCommandName();
+        if (name == null) { // NullPointerException sometimes happens
+            return;
+        }
         final var className = event.getCommand().getClass().getSimpleName();
         final var undo = UndoManager.getInstance(project);
         // reset current editor when user performs an Undo or Redo action or

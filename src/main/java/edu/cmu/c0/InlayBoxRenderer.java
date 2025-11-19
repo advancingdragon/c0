@@ -53,17 +53,20 @@ public class InlayBoxRenderer implements EditorCustomElementRenderer {
         myState = state;
         myPCs = thePCs;
         final var chunks = state.h().values().toSeq();
+        final var optimisticChunks = state.optimisticHeap().values().toSeq();
         final var fieldAndPredicateChunks = SymbExLogger.partitionChunks(chunks);
-        final var fieldChunksWithSnap = SymbExLogger.filterFieldChunksWithSnap(fieldAndPredicateChunks._1());
-        final var fieldChunks$ = SymbExLogger.formatChunksUniqueHack(fieldAndPredicateChunks._1(), state);
-        final var fieldChunksWithSnap$ = SymbExLogger.formatFieldChunksWithSnap(fieldChunksWithSnap, state);
-        final var resourceChunks$ = SymbExLogger.formatChunks(fieldAndPredicateChunks._2(), state);
+        final var fieldChunks$ = SymbExLogger.formatChunks(fieldAndPredicateChunks._1(), state);
+        final var predicateChunks$ = SymbExLogger.formatChunks(fieldAndPredicateChunks._2(), state);
+        final var optimisticChunks$ = SymbExLogger.formatChunks(optimisticChunks, state);
         final var thePCs$ = SymbExLogger.formatPCs(thePCs, state);
         myHeapList = new ArrayList<>();
         myPCsList = new ArrayList<>();
         addToList(myHeapList, fieldChunks$);
-        addToList(myHeapList, fieldChunksWithSnap$);
-        addToList(myHeapList, resourceChunks$);
+        addToList(myHeapList, predicateChunks$);
+        if (optimisticChunks.nonEmpty()) {
+            myHeapList.add(new StringBuilder("\uD83E\uDD1E "));
+            addToList(myHeapList, optimisticChunks$);
+        }
         addToList(myPCsList, thePCs$);
         mySelected = false;
     }

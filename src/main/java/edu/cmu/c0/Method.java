@@ -45,6 +45,7 @@ public class Method {
         myPathNumber = 0;
     }
 
+    public TranslatedPosition getPos() { return myPos; }
     public List<Path> getPaths() { return myPaths; }
     public int getPathNumber() { return myPathNumber; }
 

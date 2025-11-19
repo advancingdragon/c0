@@ -6,10 +6,7 @@ import com.intellij.openapi.editor.event.EditorMouseEvent;
 import com.intellij.openapi.editor.event.EditorMouseEventArea;
 import com.intellij.openapi.editor.event.EditorMouseListener;
 import org.jetbrains.annotations.NotNull;
-import viper.silicon.logger.SymbExLogger;
 import viper.silicon.logger.SymbLog;
-import viper.silicon.logger.records.data.MethodRecord;
-import viper.silver.ast.TranslatedPosition;
 
 import java.util.Map;
 
@@ -69,25 +66,25 @@ public class Controller implements EditorMouseListener {
 
         U.cleanUpAfterClick(editor);
 
-        // find method line belongs to, toggle path number, and redraw inlays
+        // find method line belongs to, set path number to path clicked, and
+        // redraw inlays
         final var lineClicked = event.getLogicalPosition().line;
-        for (final var symbLog : myMethods.keySet()) {
-            if (SymbExLogger.m(symbLog) instanceof MethodRecord methodRecord &&
-                    methodRecord.value().pos() instanceof TranslatedPosition pos) {
-                // method should always have TranslatedPosition with end
-                // object, except for methods in libraries
-                final var startLine = U.toIJ(pos.line());
-                final var endLine = U.toIJ(pos.end().get().line());
-                if (startLine <= lineClicked && lineClicked <= endLine) {
-                    // find out which path was clicked from the x coordinate
-                    final var f = editor.getColorsScheme().getFont(EditorFontType.BOLD_ITALIC);
-                    final var fontMetrics = editor.getComponent().getFontMetrics(f);
-                    final var singleCharWidth = fontMetrics.stringWidth(" ");
-                    final var lineCount = editor.getDocument().getLineCount();
-                    final var x = event.getMouseEvent().getX();
-                    final var pathNumber = x / singleCharWidth - (U.numberOfChars(lineCount) + 1);
-                    myMethods.get(symbLog).setPathNumber(pathNumber);
-                }
+        for (final var method : myMethods.values()) {
+            // method should always have TranslatedPosition with end object,
+            // except for methods in libraries
+            final var pos = method.getPos();
+            final var startLine = U.toIJ(pos.line());
+            final var endLine = U.toIJ(pos.end().get().line());
+            if (startLine <= lineClicked && lineClicked <= endLine) {
+                // find out which path was clicked from the x coordinate
+                final var f = editor.getColorsScheme().getFont(EditorFontType.BOLD_ITALIC);
+                final var fontMetrics = editor.getComponent().getFontMetrics(f);
+                final var singleCharWidth = fontMetrics.stringWidth(" ");
+                final var lineCount = editor.getDocument().getLineCount();
+                final var x = event.getMouseEvent().getX();
+                // empirically determined that this is the way the UI is laid out
+                final var pathNumber = (x - 8 - (singleCharWidth*U.numberOfChars(lineCount))) / singleCharWidth;
+                method.setPathNumber(pathNumber);
             }
         }
 
