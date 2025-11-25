@@ -110,16 +110,15 @@ public class Method {
                 }
                 case ConditionalEdgeRecord c &&
                         c.value().pos() instanceof TranslatedPosition pos -> {
-                    final var offset0 = document.getLineStartOffset(U.toIJ(pos.line()));
+                    final var offset0 = document.getLineStartOffset(U.toIJ(pos.line())) + U.toIJ(pos.column());
                     final var end = pos.end().get();
-                    final var offset1 = document.getLineStartOffset(U.toIJ(end.line()));
+                    final var offset1 = document.getLineStartOffset(U.toIJ(end.line())) + U.toIJ(end.column());
                     var color = JBColor.GREEN;
                     if (c.value() instanceof Not not && not.pos().equals(c.value().pos())) {
                         color = JBColor.LIGHT_GRAY;
                     }
                     final var attr = new TextAttributes(JBColor.BLACK, color, color, EffectType.BOXED, Font.BOLD);
-                    markupModel.addRangeHighlighter(offset0 + U.toIJ(pos.column()),
-                            offset1 + U.toIJ(end.column()),
+                    markupModel.addRangeHighlighter(offset0, offset1,
                             U.LAYER_CONDITIONAL, attr, HighlighterTargetArea.EXACT_RANGE);
                 }
                 case EndRecord e -> {
@@ -129,11 +128,10 @@ public class Method {
                 }
                 case ErrorRecord r &&
                         r.error().pos() instanceof TranslatedPosition pos -> {
-                    final var offset0 = document.getLineStartOffset(U.toIJ(pos.line()));
+                    final var offset0 = document.getLineStartOffset(U.toIJ(pos.line())) + U.toIJ(pos.column());
                     final var end = pos.end().get();
-                    final var offset1 = document.getLineStartOffset(U.toIJ(end.line()));
-                    markupModel.addRangeHighlighter(offset0 + U.toIJ(pos.column()),
-                            offset1 + U.toIJ(end.column()),
+                    final var offset1 = document.getLineStartOffset(U.toIJ(end.line())) + U.toIJ(end.column());
+                    markupModel.addRangeHighlighter(offset0, offset1,
                             U.LAYER_ERROR, U.BAD, HighlighterTargetArea.EXACT_RANGE);
                     inlayModel.addAfterLineEndElement(offset0, false,
                             new InlayRenderer(JBColor.RED, r.error().readableMessage()));

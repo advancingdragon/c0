@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class U {
+    public static final int LAYER_CHECK = 4200;
     public static final int LAYER_CONDITIONAL = 5432;
     public static final int LAYER_ERROR = 5678;
     public static final TextAttributes BAD = new TextAttributes(JBColor.BLACK,
@@ -86,16 +87,12 @@ public class U {
         for (final var highlighter : markupModel.getAllHighlighters()) {
             // find our highlighters, which all have specific layer numbers
             final var layer = highlighter.getLayer();
-            if (layer == LAYER_CONDITIONAL || layer == LAYER_ERROR) {
+            if (layer == LAYER_CHECK || layer == LAYER_CONDITIONAL || layer == LAYER_ERROR) {
                 markupModel.removeHighlighter(highlighter);
             }
         }
         // reset gutter
         editor.getGutter().closeAllAnnotations();
-        // reset viewer table
-        final var instance = VTableModel.getInstance();
-        instance.reset();
-        instance.fireTableDataChanged();
     }
 
     public static void reset(@NotNull Editor editor) {

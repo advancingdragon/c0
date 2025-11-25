@@ -14,6 +14,7 @@ import viper.silicon.state.State;
 import viper.silicon.state.terms.Term;
 
 import java.awt.Graphics2D;
+import java.awt.BasicStroke;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 
@@ -23,6 +24,11 @@ public class InlayBoxRenderer implements EditorCustomElementRenderer {
     public static final JBColor BG_MAIN_COLOR = new JBColor(0xECFFFF, 0xECFFFF);
     public static final JBColor CONSUMED_COLOR = new JBColor(0x800060, 0x800060);
     public static final JBColor MAIN_COLOR = new JBColor(0x0000C0, 0x0000C0);
+    public static final BasicStroke DASHED =
+            new BasicStroke(4.0f,
+                    BasicStroke.CAP_BUTT,
+                    BasicStroke.JOIN_MITER,
+                    10.0f, new float[]{10.0f}, 0.0f);
 
     private final String myLabel;
     private final int myLongest;
@@ -30,7 +36,6 @@ public class InlayBoxRenderer implements EditorCustomElementRenderer {
     private final ListSet<Term> myPCs;
     private final ArrayList<StringBuilder> myHeapList;
     private final ArrayList<StringBuilder> myPCsList;
-    private boolean mySelected;
 
     private void addToList(ArrayList<StringBuilder> list, Seq<String> strings) {
         for (final var string : JavaConverters.asJavaIterable(strings)) {
@@ -68,23 +73,6 @@ public class InlayBoxRenderer implements EditorCustomElementRenderer {
             addToList(myHeapList, optimisticChunks$);
         }
         addToList(myPCsList, thePCs$);
-        mySelected = false;
-    }
-
-    public State getState() {
-        return myState;
-    }
-
-    public ListSet<Term> getPCs() {
-        return myPCs;
-    }
-
-    public void select() {
-        mySelected = true;
-    }
-
-    public void deselect() {
-        mySelected = false;
     }
 
     @Override
@@ -122,10 +110,10 @@ public class InlayBoxRenderer implements EditorCustomElementRenderer {
         }
 
         final var heapY = y - editor.getAscent();
-        g.setColor(mySelected ? CONSUMED_COLOR : BG_CONSUMED_COLOR);
+        g.setColor(BG_CONSUMED_COLOR);
         g.fillRect(x, heapY, width, myHeapList.size() * editor.getLineHeight());
 
-        g.setColor(mySelected ? BG_CONSUMED_COLOR : CONSUMED_COLOR);
+        g.setColor(CONSUMED_COLOR);
         for (final var stringBuilder : myHeapList) {
             g.drawString(stringBuilder.toString(), x, y);
             y += editor.getLineHeight();
@@ -133,10 +121,10 @@ public class InlayBoxRenderer implements EditorCustomElementRenderer {
 
         // the correct way to calculate the vertical position is y - ascent
         final var mainY = y - editor.getAscent();
-        g.setColor(mySelected ? MAIN_COLOR : BG_MAIN_COLOR);
+        g.setColor(BG_MAIN_COLOR);
         g.fillRect(x, mainY, width, myPCsList.size() * editor.getLineHeight());
 
-        g.setColor(mySelected ? BG_MAIN_COLOR : MAIN_COLOR);
+        g.setColor(MAIN_COLOR);
         for (final var stringBuilder : myPCsList) {
             g.drawString(stringBuilder.toString(), x, y);
             y += editor.getLineHeight();
@@ -144,6 +132,10 @@ public class InlayBoxRenderer implements EditorCustomElementRenderer {
 
         // frame the whole inlay
         g.setColor(JBColor.BLACK);
+        var oldStroke = g.getStroke();
+        if (myState.isImprecise()) {
+            g.setStroke(DASHED);
+        }
         g.drawRect(x, (int) r.getY(), width, (int) r.getHeight());
 
         // draw line
@@ -151,5 +143,7 @@ public class InlayBoxRenderer implements EditorCustomElementRenderer {
         final var offset = inlay.getOffset();
         final var lineLength = fontMetrics.stringWidth(" ".repeat(document.getLineEndOffset(document.getLineNumber(offset)) - offset));
         g.drawLine(lineLength, (int) r.getY() + (int) r.getHeight(), x, (int) r.getY() + (int) r.getHeight());
+        // restore old stroke
+        g.setStroke(oldStroke);
     }
 }

@@ -1,4 +1,4 @@
-package edu.cmu.c0;
+package edu.cmu.c0.tutorial;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx;
@@ -10,7 +10,7 @@ import org.cef.browser.CefBrowser;
 import org.cef.browser.CefFrame;
 import org.cef.handler.CefDisplayHandlerAdapter;
 
-public class TutorialDisplayHandler extends CefDisplayHandlerAdapter {
+public class DisplayHandler extends CefDisplayHandlerAdapter {
     @Override
     public void onAddressChange(CefBrowser browser, CefFrame frame, String url) {
         final var projects = ProjectManager.getInstance().getOpenProjects();

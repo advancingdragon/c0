@@ -5,25 +5,32 @@ import com.intellij.openapi.editor.colors.EditorFontType;
 import com.intellij.openapi.editor.event.EditorMouseEvent;
 import com.intellij.openapi.editor.event.EditorMouseEventArea;
 import com.intellij.openapi.editor.event.EditorMouseListener;
+import edu.cmu.c0.runtime.TableModel;
 import org.jetbrains.annotations.NotNull;
+import scala.collection.JavaConverters;
 import viper.silicon.logger.SymbLog;
+import viper.silicon.state.runtimeChecks;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class Controller implements EditorMouseListener {
     private final Map<SymbLog, Method> myMethods;
+    private final Map<Integer, Check> myRuntimeChecks;
 
     public Controller(@NotNull Map<SymbLog, Method> methods) {
         myMethods = methods;
+        myRuntimeChecks = new HashMap<>();
     }
 
-    public void deselectBlockInlays(@NotNull Editor editor) {
-        final var document = editor.getDocument();
-        final var inlayModel = editor.getInlayModel();
-        for (final var inlay : inlayModel.getBlockElementsInRange(0,
-                document.getTextLength()-1, InlayBoxRenderer.class)) {
-            inlay.getRenderer().deselect();
-            inlay.repaint();
+    public void renderChecks(@NotNull Editor editor) {
+        final var checks = JavaConverters.mapAsJavaMap(runtimeChecks.getChecks());
+        for (final var checkPosition : checks.keySet()) {
+            final var check = new Check(checkPosition, checks.get(checkPosition));
+            check.render(editor);
+            for (var i = check.getOffset0(); i <= check.getOffset1(); i += 1) {
+                myRuntimeChecks.put(i, check);
+            }
         }
     }
 
@@ -32,6 +39,8 @@ public class Controller implements EditorMouseListener {
             method.renderInlays(editor);
         }
 
+        renderChecks(editor);
+
         final var gutterProvider = new GutterProvider(editor.getDocument().getLineCount(), myMethods);
         editor.getGutter().registerTextAnnotation(gutterProvider);
     }
@@ -39,20 +48,25 @@ public class Controller implements EditorMouseListener {
     @Override
     public void mouseClicked(@NotNull EditorMouseEvent event) {
         final var editor = event.getEditor();
-        final var inlay = event.getInlay();
-        if (event.getArea() == EditorMouseEventArea.EDITING_AREA &&
-                inlay != null &&
-                inlay.getRenderer() instanceof InlayBoxRenderer boxRenderer) {
-            // deselect all block inlays first
-            deselectBlockInlays(editor);
-            // mark inlay as selected
-            boxRenderer.select();
-            inlay.repaint();
-            // if symbolic state inlay clicked, update tool window
-            final var instance = VTableModel.getInstance();
-            instance.setState(boxRenderer.getState());
-            instance.setPCs(boxRenderer.getPCs());
-            instance.fireTableDataChanged();
+
+        if (event.getArea() == EditorMouseEventArea.EDITING_AREA) {
+            if (myRuntimeChecks.containsKey(event.getOffset())) {
+                final var selectedCheck = myRuntimeChecks.get(event.getOffset());
+                final var checks = myRuntimeChecks.values();
+                // remove duplicates
+                final Iterable<Check> i = () -> checks.stream().distinct().iterator();
+                for (final var check : i) {
+                    if (check.equals(selectedCheck)) {
+                        selectedCheck.setSelected(true);
+                    } else {
+                        check.setSelected(false);
+                    }
+                    check.render(editor);
+                }
+                final var instance = TableModel.getInstance();
+                instance.setCheckList(selectedCheck.getCheckList());
+                instance.fireTableDataChanged();
+            }
             return;
         }
 

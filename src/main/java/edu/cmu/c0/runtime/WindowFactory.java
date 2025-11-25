@@ -1,4 +1,4 @@
-package edu.cmu.c0;
+package edu.cmu.c0.runtime;
 
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
@@ -7,10 +7,10 @@ import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.ui.content.ContentFactory;
 import org.jetbrains.annotations.NotNull;
 
-public class VToolWindowFactory implements ToolWindowFactory, DumbAware {
+public class WindowFactory implements ToolWindowFactory, DumbAware {
     @Override
     public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
-        final var panel = new VToolWindowPanel();
+        final var panel = new ToolWindowPanel();
         final var content = ContentFactory.getInstance().createContent(panel, "", false);
         toolWindow.getContentManager().addContent(content);
     }
