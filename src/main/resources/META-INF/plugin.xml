@@ -22,15 +22,15 @@
     <depends>com.intellij.modules.platform</depends>
 
     <applicationListeners>
-        <listener class="edu.cmu.c0.ResetListener" topic="com.intellij.openapi.command.CommandListener" />
+        <listener class="edu.cmu.c0.reset.ResetListener" topic="com.intellij.openapi.command.CommandListener" />
     </applicationListeners>
 
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
-        <copyPastePreProcessor implementation="edu.cmu.c0.ResetPaste" />
-        <enterHandlerDelegate implementation="edu.cmu.c0.ResetEnter" />
-        <backspaceHandlerDelegate implementation="edu.cmu.c0.ResetBackspace" />
+        <copyPastePreProcessor implementation="edu.cmu.c0.reset.ResetPaste" />
+        <enterHandlerDelegate implementation="edu.cmu.c0.reset.ResetEnter" />
+        <backspaceHandlerDelegate implementation="edu.cmu.c0.reset.ResetBackspace" />
         <fileType
             name="C0 File"
             implementationClass="edu.cmu.c0.C0FileType"
@@ -47,15 +47,15 @@
         <toolWindow anchor="right" factoryClass="edu.cmu.c0.tutorial.WindowFactory" id="Tutorial" />
     </extensions>
     <actions>
-        <action class="edu.cmu.c0.ActionReset" id="edu.cmu.c0.ActionReset" text="Reset Verification">
+        <action class="edu.cmu.c0.action.ActionReset" id="edu.cmu.c0.action.ActionReset" text="Reset Verification">
             <add-to-group anchor="last" group-id="BuildMenu" />
             <keyboard-shortcut first-keystroke="ESCAPE" keymap="$default" />
         </action>
-        <action class="edu.cmu.c0.ActionVerify" id="edu.cmu.c0.ActionVerify" text="Verify File">
+        <action class="edu.cmu.c0.action.ActionVerify" id="edu.cmu.c0.action.ActionVerify" text="Verify File">
             <add-to-group anchor="last" group-id="BuildMenu" />
             <keyboard-shortcut first-keystroke="control alt V" keymap="$default" />
         </action>
-        <action class="edu.cmu.c0.ActionVerifyInline" id="edu.cmu.c0.ActionVerifyInline" text="Verify File Inline">
+        <action class="edu.cmu.c0.action.ActionVerifyInline" id="edu.cmu.c0.action.ActionVerifyInline" text="Verify File Inline">
             <add-to-group anchor="last" group-id="BuildMenu" />
             <keyboard-shortcut first-keystroke="control alt I" keymap="$default" />
         </action>

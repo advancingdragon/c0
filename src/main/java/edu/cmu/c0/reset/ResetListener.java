@@ -1,9 +1,10 @@
-package edu.cmu.c0;
+package edu.cmu.c0.reset;
 
 import com.intellij.openapi.command.CommandEvent;
 import com.intellij.openapi.command.CommandListener;
 import com.intellij.openapi.command.undo.UndoManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import edu.cmu.c0.U;
 import org.jetbrains.annotations.NotNull;
 
 public class ResetListener implements CommandListener {

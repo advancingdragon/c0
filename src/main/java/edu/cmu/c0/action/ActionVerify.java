@@ -1,4 +1,4 @@
-package edu.cmu.c0;
+package edu.cmu.c0.action;
 
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -7,6 +7,7 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.fileEditor.impl.EditorWindow;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.testFramework.LightVirtualFile;
+import edu.cmu.c0.U;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.JSplitPane;
