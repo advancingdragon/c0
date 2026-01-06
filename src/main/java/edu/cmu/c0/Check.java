@@ -44,23 +44,18 @@ public class Check {
         if (myRangeHighlighter != null) {
             markupModel.removeHighlighter(myRangeHighlighter);
         }
-        switch (myCheckPosition) {
-            case CheckPosition.GenericNode genericNode -> {
-                if (genericNode.node() instanceof Positioned positioned &&
-                        positioned.pos() instanceof TranslatedPosition pos) {
-                    myOffset0 = document.getLineStartOffset(U.toIJ(pos.line())) + U.toIJ(pos.column());
-                    final var end = pos.end().get();
-                    myOffset1 = document.getLineStartOffset(U.toIJ(end.line())) + U.toIJ(end.column());
-                    final var color = mySelected ? SELECTED : JBColor.ORANGE;
-                    final var attr = new TextAttributes(JBColor.BLACK, color, color, EffectType.BOXED, Font.BOLD);
-                    myRangeHighlighter = markupModel.addRangeHighlighter(myOffset0, myOffset1,
-                            U.LAYER_CHECK, attr, HighlighterTargetArea.EXACT_RANGE);
-                }
+        if (myCheckPosition instanceof CheckPosition.GenericNode genericNode) {
+            if (genericNode.node() instanceof Positioned positioned &&
+                    positioned.pos() instanceof TranslatedPosition pos) {
+                myOffset0 = document.getLineStartOffset(U.toIJ(pos.line())) + U.toIJ(pos.column());
+                final var end = pos.end().get();
+                myOffset1 = document.getLineStartOffset(U.toIJ(end.line())) + U.toIJ(end.column());
+                final var color = mySelected ? SELECTED : JBColor.ORANGE;
+                final var attr = new TextAttributes(JBColor.BLACK, color, color, EffectType.BOXED, Font.BOLD);
+                myRangeHighlighter = markupModel.addRangeHighlighter(myOffset0, myOffset1,
+                        U.LAYER_CHECK, attr, HighlighterTargetArea.EXACT_RANGE);
             }
-            case CheckPosition.Loop loop -> {
-                // TODO
-            }
-            default -> { }
         }
+        // TODO CheckPosition.Loop loop
     }
 }

@@ -59,33 +59,26 @@ public class Method {
                          boolean ended,
                          Map<BranchingRecord, Boolean> forks,
                          Set<ExecuteRecord> statements) {
-        forLoop:
         for (final var record : JavaConverters.asJavaIterable(records)) {
-            switch (record) {
-                case BranchingRecord b -> {
-                    final var forks0 = new HashMap<>(forks);
-                    final var forks1 = new HashMap<>(forks);
-                    forks0.put(b, true);
-                    traverse(b.getBranches().apply(0), ended, forks0, new HashSet<>(statements));
-                    forks1.put(b, false);
-                    traverse(b.getBranches().apply(1), ended, forks1, new HashSet<>(statements));
-                }
-                case EndRecord ignored -> {
-                    ended = true;
-                    break forLoop;
-                }
-                case ErrorRecord ignored -> {
-                    ended = true;
-                    break forLoop;
-                }
-                case LoopOutRecord ignored -> {
-                    ended = true;
-                    break forLoop;
-                }
-                case ExecuteRecord x &&
-                        x.value().pos() instanceof TranslatedPosition ->
-                    statements.add(x);
-                default -> { }
+            if (record instanceof BranchingRecord b) {
+                final var forks0 = new HashMap<>(forks);
+                final var forks1 = new HashMap<>(forks);
+                forks0.put(b, true);
+                traverse(b.getBranches().apply(0), ended, forks0, new HashSet<>(statements));
+                forks1.put(b, false);
+                traverse(b.getBranches().apply(1), ended, forks1, new HashSet<>(statements));
+            } else if (record instanceof EndRecord) {
+                ended = true;
+                break;
+            } else if (record instanceof ErrorRecord) {
+                ended = true;
+                break;
+            } else if (record instanceof LoopOutRecord ignored) {
+                ended = true;
+                break;
+            } else if (record instanceof ExecuteRecord x &&
+                    x.value().pos() instanceof TranslatedPosition) {
+                statements.add(x);
             }
         }
         if (ended) {
@@ -99,67 +92,71 @@ public class Method {
         final var inlayModel = editor.getInlayModel();
         final var markupModel = editor.getMarkupModel();
         for (final var record : JavaConverters.asJavaIterable(records)) {
-            switch (record) {
-                case BranchingRecord b &&
-                        myPaths.get(myPathNumber).forks.containsKey(b) -> {
-                    if (myPaths.get(myPathNumber).forks.get(b)) {
-                        renderInlays(b.getBranches().apply(0), editor);
-                    } else {
-                        renderInlays(b.getBranches().apply(1), editor);
-                    }
+            if (record instanceof BranchingRecord b &&
+                    myPaths.get(myPathNumber).forks.containsKey(b)) {
+
+                if (myPaths.get(myPathNumber).forks.get(b)) {
+                    renderInlays(b.getBranches().apply(0), editor);
+                } else {
+                    renderInlays(b.getBranches().apply(1), editor);
                 }
-                case ConditionalEdgeRecord c &&
-                        c.value().pos() instanceof TranslatedPosition pos -> {
-                    final var offset0 = document.getLineStartOffset(U.toIJ(pos.line())) + U.toIJ(pos.column());
-                    final var end = pos.end().get();
-                    final var offset1 = document.getLineStartOffset(U.toIJ(end.line())) + U.toIJ(end.column());
-                    var color = JBColor.GREEN;
-                    if (c.value() instanceof Not not && not.pos().equals(c.value().pos())) {
-                        color = JBColor.LIGHT_GRAY;
-                    }
-                    final var attr = new TextAttributes(JBColor.BLACK, color, color, EffectType.BOXED, Font.BOLD);
-                    markupModel.addRangeHighlighter(offset0, offset1,
-                            U.LAYER_CONDITIONAL, attr, HighlighterTargetArea.EXACT_RANGE);
+
+            } else if (record instanceof ConditionalEdgeRecord c &&
+                    c.value().pos() instanceof TranslatedPosition pos) {
+
+                final var offset0 = document.getLineStartOffset(U.toIJ(pos.line())) + U.toIJ(pos.column());
+                final var end = pos.end().get();
+                final var offset1 = document.getLineStartOffset(U.toIJ(end.line())) + U.toIJ(end.column());
+                var color = JBColor.GREEN;
+                if (c.value() instanceof Not not && not.pos().equals(c.value().pos())) {
+                    color = JBColor.LIGHT_GRAY;
                 }
-                case EndRecord e -> {
-                    final var offset = document.getLineStartOffset(U.toIJ(myPos.end().get().line()));
-                    final var renderer = new InlayBoxRenderer("end", myLongest, e.state(), e.pcs());
-                    inlayModel.addBlockElement(offset, false, false, 1, renderer);
-                }
-                case ErrorRecord r &&
-                        r.error().pos() instanceof TranslatedPosition pos -> {
-                    final var offset0 = document.getLineStartOffset(U.toIJ(pos.line())) + U.toIJ(pos.column());
-                    final var end = pos.end().get();
-                    final var offset1 = document.getLineStartOffset(U.toIJ(end.line())) + U.toIJ(end.column());
-                    markupModel.addRangeHighlighter(offset0, offset1,
-                            U.LAYER_ERROR, U.BAD, HighlighterTargetArea.EXACT_RANGE);
-                    inlayModel.addAfterLineEndElement(offset0, false,
-                            new InlayRenderer(JBColor.RED, r.error().readableMessage()));
-                    // Need to display state right before error happened as well
-                    // This state is displayed below the error since the state
-                    // of the last executed statement is displayed above
-                    final var renderer = new InlayBoxRenderer("error", myLongest, r.state(), r.pcs());
-                    inlayModel.addBlockElement(offset0, false, false, 1, renderer);
-                }
-                case ExecuteRecord x &&
-                        x.value().pos() instanceof TranslatedPosition pos -> {
-                    final var offset = document.getLineStartOffset(U.toIJ(pos.line()));
-                    final var renderer = new InlayBoxRenderer("", myLongest, x.state(), x.pcs());
-                    inlayModel.addBlockElement(offset, false, true, 1, renderer);
-                }
-                case LoopInRecord i -> {
-                    final var pos = (TranslatedPosition) SymbExLogger.whileLoops().get(i.value()).get().pos();
-                    final var offset = document.getLineStartOffset(U.toIJ(pos.line()));
-                    final var renderer = new InlayBoxRenderer("entering loop", myLongest, i.state(), i.pcs());
-                    inlayModel.addBlockElement(offset, false, true, 1, renderer);
-                }
-                case LoopOutRecord o -> {
-                    final var pos = (TranslatedPosition) SymbExLogger.whileLoops().get(o.value()).get().pos();
-                    final var offset = document.getLineStartOffset(U.toIJ(pos.end().get().line()));
-                    final var renderer = new InlayBoxRenderer("between iterations", myLongest, o.state(), o.pcs());
-                    inlayModel.addBlockElement(offset, false, true, 1, renderer);
-                }
-                default -> { }
+                final var attr = new TextAttributes(JBColor.BLACK, color, color, EffectType.BOXED, Font.BOLD);
+                markupModel.addRangeHighlighter(offset0, offset1,
+                        U.LAYER_CONDITIONAL, attr, HighlighterTargetArea.EXACT_RANGE);
+
+            } else if (record instanceof EndRecord e) {
+
+                final var offset = document.getLineStartOffset(U.toIJ(myPos.end().get().line()));
+                final var renderer = new InlayBoxRenderer("end", myLongest, e.state(), e.pcs());
+                inlayModel.addBlockElement(offset, false, false, 1, renderer);
+
+            } else if (record instanceof ErrorRecord r &&
+                    r.error().pos() instanceof TranslatedPosition pos) {
+
+                final var offset0 = document.getLineStartOffset(U.toIJ(pos.line())) + U.toIJ(pos.column());
+                final var end = pos.end().get();
+                final var offset1 = document.getLineStartOffset(U.toIJ(end.line())) + U.toIJ(end.column());
+                markupModel.addRangeHighlighter(offset0, offset1,
+                        U.LAYER_ERROR, U.BAD, HighlighterTargetArea.EXACT_RANGE);
+                inlayModel.addAfterLineEndElement(offset0, false,
+                        new InlayRenderer(JBColor.RED, r.error().readableMessage()));
+                // Need to display state right before error happened as well
+                // This state is displayed below the error since the state
+                // of the last executed statement is displayed above
+                final var renderer = new InlayBoxRenderer("error", myLongest, r.state(), r.pcs());
+                inlayModel.addBlockElement(offset0, false, false, 1, renderer);
+
+            } else if (record instanceof ExecuteRecord x &&
+                    x.value().pos() instanceof TranslatedPosition pos) {
+
+                final var offset = document.getLineStartOffset(U.toIJ(pos.line()));
+                final var renderer = new InlayBoxRenderer("", myLongest, x.state(), x.pcs());
+                inlayModel.addBlockElement(offset, false, true, 1, renderer);
+
+            } else if (record instanceof LoopInRecord i) {
+
+                final var pos = (TranslatedPosition) SymbExLogger.whileLoops().get(i.value()).get().pos();
+                final var offset = document.getLineStartOffset(U.toIJ(pos.line()));
+                final var renderer = new InlayBoxRenderer("entering loop", myLongest, i.state(), i.pcs());
+                inlayModel.addBlockElement(offset, false, true, 1, renderer);
+
+            } else if (record instanceof LoopOutRecord o) {
+
+                final var pos = (TranslatedPosition) SymbExLogger.whileLoops().get(o.value()).get().pos();
+                final var offset = document.getLineStartOffset(U.toIJ(pos.end().get().line()));
+                final var renderer = new InlayBoxRenderer("between iterations", myLongest, o.state(), o.pcs());
+                inlayModel.addBlockElement(offset, false, true, 1, renderer);
             }
         }
     }

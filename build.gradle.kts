@@ -15,13 +15,14 @@ sourceSets {
 }
 
 repositories {
+    mavenLocal()
     mavenCentral()
 }
 
 // Configure Gradle IntelliJ Plugin
 // Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
 intellij {
-    version.set("2022.3.3")
+    version.set("2023.2.8")
     type.set("IC") // Target IDE Platform
 
     plugins.set(listOf(/* Plugin Dependencies */))
@@ -32,7 +33,6 @@ tasks {
     withType<JavaCompile> {
         sourceCompatibility = "17"
         targetCompatibility = "17"
-        options.compilerArgs.add("--enable-preview")
     }
 
     patchPluginXml {
@@ -62,5 +62,6 @@ configurations.implementation {
 }
 
 dependencies {
+    // implementation("io.github.liquid-java:liquidjava-verifier:0.0.8")
     implementation(files("../gvc0/target/scala-2.12/gvc0-assembly-0.1.0-SNAPSHOT.jar"))
 }
